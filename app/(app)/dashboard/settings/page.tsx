@@ -38,6 +38,7 @@ export default function SettingsPage() {
   const [newRuleType, setNewRuleType] = useState<string>('title_prefix')
   const [newRulePattern, setNewRulePattern] = useState('')
   const [addingRule, setAddingRule] = useState(false)
+  const [addRuleError, setAddRuleError] = useState<string | null>(null)
 
   const [changelogSettings, setChangelogSettings] = useState<ChangelogSettings | null>(null)
   const [savingBadge, setSavingBadge] = useState(false)
@@ -79,6 +80,7 @@ export default function SettingsPage() {
   async function addRule() {
     if (!workspace || !newRulePattern.trim()) return
     setAddingRule(true)
+    setAddRuleError(null)
     const res = await fetch(`/api/workspaces/${workspace.id}/ignore-rules`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -88,6 +90,8 @@ export default function SettingsPage() {
       const data = await res.json()
       setRules(prev => [...prev, data.rule])
       setNewRulePattern('')
+    } else {
+      setAddRuleError('Failed to add rule. Please try again.')
     }
     setAddingRule(false)
   }
@@ -238,6 +242,9 @@ export default function SettingsPage() {
             Add
           </Button>
         </div>
+        {addRuleError && (
+          <p className="text-xs text-destructive">{addRuleError}</p>
+        )}
       </div>
     </div>
   )
