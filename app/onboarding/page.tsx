@@ -37,7 +37,6 @@ export default function OnboardingPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, slug }),
     })
-    const data = await res.json()
     setLoading(false)
 
     if (res.status === 409) {
