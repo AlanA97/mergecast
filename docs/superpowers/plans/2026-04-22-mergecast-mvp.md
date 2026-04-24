@@ -13,7 +13,7 @@
 ## File Structure
 
 ```
-shiplog/
+mergecast/
 ├── app/
 │   ├── (auth)/
 │   │   ├── login/page.tsx
@@ -117,14 +117,14 @@ shiplog/
 
 ```bash
 cd /Users/alanalic/Projects/new-idea
-npx create-next-app@latest shiplog \
+npx create-next-app@latest mergecast \
   --typescript \
   --tailwind \
   --eslint \
   --app \
   --no-src-dir \
   --import-alias "@/*"
-cd shiplog
+cd mergecast
 ```
 
 - [ ] **Step 2: Install dependencies**
@@ -181,7 +181,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 GITHUB_APP_ID=
 GITHUB_APP_PRIVATE_KEY=        # base64-encoded PEM
 GITHUB_APP_WEBHOOK_SECRET=     # shared secret for all webhooks
-NEXT_PUBLIC_GITHUB_APP_SLUG=   # e.g. "shiplog-app"
+NEXT_PUBLIC_GITHUB_APP_SLUG=   # e.g. "mergecast-app"
 
 # OpenAI
 OPENAI_API_KEY=
@@ -265,7 +265,7 @@ git commit -m "feat: scaffold Next.js 16 project with Supabase, Stripe, Resend, 
 
 - [ ] **Step 1: Create Supabase project**
 
-1. Go to supabase.com → New project → name: `shiplog`
+1. Go to supabase.com → New project → name: `mergecast`
 2. Save: Project URL, anon key, service role key → paste into `.env.local`
 3. Install Supabase CLI: `npm install -D supabase`
 4. Link project: `npx supabase login && npx supabase link --project-ref <your-ref>`
@@ -3388,7 +3388,7 @@ Create `widget/src/index.ts`:
   const workspaceSlug = script?.getAttribute('data-workspace') ?? ''
   if (!workspaceSlug) return
 
-  const API_BASE = 'SHIPLOG_API_URL'
+  const API_BASE = 'MERGECAST_API_URL'
 
   let entries: Array<{ id: string; title: string; final_content: string; published_at: string }> = []
   let isOpen = false
@@ -3403,7 +3403,7 @@ Create `widget/src/index.ts`:
 
   function createWidget(settings: { position: string; theme: string; accentColor: string; buttonLabel: string }) {
     const container = document.createElement('div')
-    container.id = 'shiplog-widget'
+    container.id = 'mergecast-widget'
     container.style.cssText = `position:fixed;${settings.position.includes('right') ? 'right:24px' : 'left:24px'};bottom:24px;z-index:9999;font-family:system-ui,sans-serif;`
 
     const button = document.createElement('button')
@@ -3493,7 +3493,7 @@ const result = buildSync({
   bundle: true,
   minify: true,
   format: 'iife',
-  define: { 'SHIPLOG_API_URL': JSON.stringify(appUrl) },
+  define: { 'MERGECAST_API_URL': JSON.stringify(appUrl) },
   write: false,
 })
 
@@ -4208,7 +4208,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-4 justify-center">
           <Button size="lg" asChild><Link href="/signup">Start for free</Link></Button>
           <Button size="lg" variant="outline" asChild>
-            <Link href="/shiplog">See a live example</Link>
+            <Link href="/mergecast">See a live example</Link>
           </Button>
         </div>
       </section>
@@ -4301,7 +4301,7 @@ npm run dev
 # Open http://localhost:3000
 # Confirm: hero, features, pricing all visible
 # Click "Start free" → should go to /signup
-# Click "See a live example" → should go to /shiplog (public changelog, 404 until you have entries)
+# Click "See a live example" → should go to /mergecast (public changelog, 404 until you have entries)
 ```
 
 - [ ] **Step 3: Commit**
@@ -4771,7 +4771,7 @@ git commit -m "fix: resolve test failures and TypeScript errors before launch"
 - [ ] **Step 1: Push to GitHub**
 
 ```bash
-git remote add origin https://github.com/<your-username>/shiplog.git
+git remote add origin https://github.com/<your-username>/mergecast.git
 git push -u origin main
 ```
 

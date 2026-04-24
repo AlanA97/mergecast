@@ -1857,7 +1857,7 @@ export default function LandingPage() {
                 Start for free
               </Link>
               <Link
-                href="/shiplog"
+                href="/mergecast"
                 className="inline-flex items-center justify-center rounded-md border border-input px-5 py-2.5 text-sm font-medium hover:bg-accent transition-colors"
               >
                 See a live example
