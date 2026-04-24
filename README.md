@@ -1,36 +1,350 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mergecast
 
-## Getting Started
+**Mergecast** is an open-source changelog platform that turns merged GitHub pull requests into polished product updates — automatically. It generates AI-written release notes, publishes them to a hosted changelog page, notifies email subscribers, and surfaces updates via an embeddable widget you can drop into any website.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+---
+
+## Features
+
+- **GitHub integration** — Install the GitHub App, connect a repo, and Mergecast listens for merged PRs automatically
+- **AI-generated drafts** — GPT-4o turns PR titles and descriptions into user-facing release notes
+- **PR noise filtering** — Ignore rules suppress CI runs, dependency bumps, and internal commits
+- **Embeddable widget** — A single `<script>` tag adds a changelog drawer to any website, no framework required
+- **Email subscribers** — Double opt-in, per-workspace subscriber lists with auto-send on publish
+- **RSS feed** — Every changelog has a `/rss.xml` feed at `/<workspace-slug>/rss.xml`
+- **Plan-gated limits** — Free tier includes 3 publishes/month; paid plans unlock unlimited publishes, more subscribers, and badge removal
+- **Admin dashboard** — Workspace count, plan breakdown, and MRR estimate at `/admin`
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Database & Auth | Supabase (PostgreSQL + Row-Level Security) |
+| UI | shadcn/ui, Radix UI, Tailwind CSS, Lucide React |
+| AI | OpenAI GPT-4o |
+| Email | Resend |
+| Payments | Stripe |
+| GitHub | GitHub App (Octokit) |
+| Widget bundler | esbuild |
+| Tests | Vitest, Testing Library |
+
+---
+
+## Project Structure
+
+```
+mergecast/
+├── app/
+│   ├── (auth)/              # Login & signup pages
+│   ├── (app)/dashboard/     # Protected dashboard (entries, billing, widget, settings, subscribers)
+│   ├── (public)/[slug]/     # Public changelog page + RSS feed
+│   ├── admin/               # Admin stats (requires is_admin flag)
+│   ├── api/                 # API routes (see below)
+│   ├── onboarding/          # Workspace creation flow
+│   └── page.tsx             # Marketing landing page
+├── components/
+│   ├── dashboard/           # Dashboard components (entry card, editor, etc.)
+│   ├── public/              # Public changelog components
+│   └── ui/                  # shadcn/ui base components
+├── lib/
+│   ├── github/              # GitHub App client, webhook parsing, ignore rules
+│   ├── openai/              # AI draft generation
+│   ├── stripe/              # Stripe client & webhook handlers
+│   ├── supabase/            # Supabase server + client helpers
+│   ├── resend/              # Email sending
+│   ├── plans.ts             # Plan definitions & quota limits
+│   └── quota.ts             # Publish quota enforcement
+├── widget/
+│   ├── src/index.ts         # Embeddable widget source (vanilla JS IIFE)
+│   └── build.ts             # esbuild config
+├── supabase/
+│   └── migrations/          # SQL migration files (run in order)
+├── tests/                   # Vitest test files
+└── docs/                    # Project documentation
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
 
-## Learn More
+- Node.js 20+
+- A [Supabase](https://supabase.com) project
+- A [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps) with webhook permissions
+- An [OpenAI](https://platform.openai.com) account (GPT-4o access)
+- A [Stripe](https://stripe.com) account
+- A [Resend](https://resend.com) account
 
-To learn more about Next.js, take a look at the following resources:
+### Steps
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone the repository**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   git clone https://github.com/AlanA97/mergecast.git
+   cd mergecast
+   ```
 
-## Deploy on Vercel
+2. **Install dependencies**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm install
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Set up environment variables**
+
+   Copy the example below into a `.env.local` file in the project root and fill in your values (see [Configuration](#configuration)):
+
+   ```bash
+   cp .env.example .env.local   # if the file exists, otherwise create it manually
+   ```
+
+4. **Apply database migrations**
+
+   In the Supabase dashboard, open the SQL editor and run each file in `supabase/migrations/` in order:
+
+   ```
+   001_initial_schema.sql
+   002_rls_policies.sql
+   003_view_count_and_ignore_rules.sql
+   004_fix_function_search_paths.sql
+   ```
+
+5. **Start the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+   The app will be available at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Configuration
+
+All configuration is done via environment variables. Create a `.env.local` file at the project root:
+
+```env
+# ── App ──────────────────────────────────────────────────────────────────────
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# ── Supabase ─────────────────────────────────────────────────────────────────
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon-key>
+SUPABASE_SECRET_KEY=<service-role-key>
+
+# ── GitHub App ───────────────────────────────────────────────────────────────
+# Create a GitHub App at https://github.com/settings/apps/new
+# Required permissions: Pull requests (read), Webhooks (write)
+# Required event: Pull request
+NEXT_PUBLIC_GITHUB_APP_SLUG=<github-app-slug>
+GITHUB_APP_ID=<numeric-app-id>
+GITHUB_APP_PRIVATE_KEY=<base64-encoded-pem>   # base64 -i private-key.pem
+GITHUB_APP_WEBHOOK_SECRET=<random-secret>
+
+# ── OpenAI ───────────────────────────────────────────────────────────────────
+OPENAI_API_KEY=sk-...
+
+# ── Stripe ───────────────────────────────────────────────────────────────────
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_STARTER_MONTHLY=price_...   # $29/mo
+STRIPE_PRICE_GROWTH_MONTHLY=price_...    # $59/mo
+STRIPE_PRICE_SCALE_MONTHLY=price_...     # $99/mo
+
+# ── Email (Resend) ────────────────────────────────────────────────────────────
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=noreply@mergecast.co
+
+# ── Cron ─────────────────────────────────────────────────────────────────────
+# A secret used to authenticate the monthly quota-reset cron job
+CRON_SECRET=<random-string>
+```
+
+### Plans
+
+Plans are defined in `lib/plans.ts`:
+
+| Plan | Price | Publishes/mo | Subscribers | Repos | Remove badge |
+|---|---|---|---|---|---|
+| Free | $0 | 3 | 100 | 1 | No |
+| Starter | $29 | Unlimited | 1,000 | 1 | No |
+| Growth | $59 | Unlimited | 10,000 | 3 | Yes |
+| Scale | $99 | Unlimited | 50,000 | Unlimited | Yes |
+
+---
+
+## Usage
+
+### Embedding the Widget
+
+Add a single `<script>` tag anywhere on your page:
+
+```html
+<script
+  src="https://mergecast.co/widget/widget.js"
+  data-workspace="your-workspace-slug"
+></script>
+```
+
+The widget renders a toggleable changelog drawer in the bottom-right corner. You can customise it from the **Widget** tab in the dashboard (accent color, position, button label, theme).
+
+### Connecting a GitHub Repository
+
+1. Go to **Settings** in the dashboard
+2. Click **Install GitHub App** — this redirects to GitHub to grant access
+3. Select the repository you want to monitor
+4. Mergecast will create a draft changelog entry for every merged pull request
+
+### PR Ignore Rules
+
+Prevent noise entries by adding ignore rules on the Settings page. Rules can match:
+
+- **Title prefix** — e.g. `chore:`, `deps:`, `ci:`
+- **Title contains** — e.g. `bump`, `dependabot`
+- **Label** — e.g. `internal`, `skip-changelog`
+
+### Publishing an Entry
+
+1. Open an auto-generated draft in the dashboard
+2. Review and edit the AI-generated content
+3. Click **Publish** — this posts the entry to your public changelog and emails all confirmed subscribers
+
+### Subscribing to a Changelog
+
+Visitors can subscribe on your public changelog page (`/<workspace-slug>`). They receive a confirmation email; once confirmed they receive an email each time you publish.
+
+### Monthly Quota Reset
+
+The Free plan quota resets on the first of each month. Configure a cron job (e.g. Vercel Cron, GitHub Actions) to call:
+
+```
+POST /api/cron/reset-quotas
+Authorization: Bearer <CRON_SECRET>
+```
+
+---
+
+## Development
+
+### Run tests
+
+```bash
+npm test          # run all tests once
+npm run test:watch  # watch mode
+```
+
+### Build the widget
+
+The widget is automatically built before `next build`. To build it separately:
+
+```bash
+npm run build:widget
+```
+
+Output: `public/widget/widget.js`
+
+### Lint
+
+```bash
+npm run lint
+```
+
+### GitHub webhook (local development)
+
+Use [ngrok](https://ngrok.com) or a similar tool to expose localhost, then set the webhook URL in your GitHub App settings:
+
+```
+https://<your-ngrok-url>/api/webhooks/github
+```
+
+### Stripe webhook (local development)
+
+Use the [Stripe CLI](https://stripe.com/docs/stripe-cli):
+
+```bash
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+The CLI will print a `STRIPE_WEBHOOK_SECRET` to use locally.
+
+---
+
+## Deployment
+
+The recommended platform is [Vercel](https://vercel.com). Any platform that supports Next.js 16 and serverless functions will work.
+
+### Vercel
+
+1. Import the repo in the Vercel dashboard
+2. Add all environment variables from `.env.local`
+3. Set up a Cron job in `vercel.json` (or the Vercel dashboard) to hit `/api/cron/reset-quotas` monthly:
+
+   ```json
+   {
+     "crons": [
+       {
+         "path": "/api/cron/reset-quotas",
+         "schedule": "0 0 1 * *"
+       }
+     ]
+   }
+   ```
+
+4. Update `NEXT_PUBLIC_APP_URL` to your production domain
+5. Update your GitHub App webhook URL to the production URL
+6. Update your Stripe webhook endpoint to the production URL
+
+---
+
+## Troubleshooting
+
+**Widget not loading**
+- Confirm the `data-workspace` attribute matches your workspace slug exactly
+- Check the browser console for network errors — the widget fetches `/api/public/changelog/<slug>`
+- Ensure `NEXT_PUBLIC_APP_URL` is set correctly in production
+
+**GitHub webhook not triggering drafts**
+- Verify the webhook secret in both the Supabase `repos` table and `GITHUB_APP_WEBHOOK_SECRET`
+- Check that the PR was actually merged (not just closed)
+- Check whether an ignore rule is silently suppressing the entry
+- Inspect the webhook delivery logs in your GitHub App settings
+
+**AI draft not generated**
+- Confirm `OPENAI_API_KEY` is valid and has access to `gpt-4o`
+- Check server logs — OpenAI errors are logged but do not block entry creation
+
+**Emails not sending**
+- Verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
+- Confirm the subscriber's email address has been confirmed (double opt-in)
+- Resend delivery logs are available in the Resend dashboard
+
+**Quota not resetting**
+- Confirm your cron job is calling `/api/cron/reset-quotas` with the correct `Authorization: Bearer <CRON_SECRET>` header
+
+**"Powered by Mergecast" badge won't hide**
+- Badge removal requires the **Growth** plan or above. Upgrade your workspace to remove it.
+
+---
+
+## License
+
+MIT
