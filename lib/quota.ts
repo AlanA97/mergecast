@@ -18,7 +18,9 @@ export async function checkPublishQuota(
 ): Promise<QuotaResult> {
   const limit = PLAN_LIMITS[workspace.plan as Plan].publishes_per_month
 
-  // Lazy reset: if reset_at is in the past, reset the counter
+  // Lazy reset: if reset_at is in the past, reset the counter.
+  // The .lt() filter makes this atomic — if two requests race here, only the
+  // first UPDATE finds a row where reset_at < now(); the second is a no-op.
   if (new Date(workspace.publish_quota_reset_at) < new Date()) {
     if (workspaceId) {
       const supabase = createSupabaseServiceClient()
@@ -32,6 +34,7 @@ export async function checkPublishQuota(
           publish_quota_reset_at: nextReset.toISOString(),
         })
         .eq('id', workspaceId)
+        .lt('publish_quota_reset_at', new Date().toISOString())
     }
     return { allowed: true }
   }

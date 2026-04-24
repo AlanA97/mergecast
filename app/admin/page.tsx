@@ -1,12 +1,13 @@
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { format } from 'date-fns'
 
 export default async function AdminPage() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const isAdmin = user.user_metadata?.is_admin === true
+  const isAdmin = user.app_metadata?.is_admin === true
   if (!isAdmin) redirect('/dashboard')
 
   const service = createSupabaseServiceClient()
@@ -69,7 +70,7 @@ export default async function AdminPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {new Date(ws.created_at).toLocaleDateString()}
+                  {format(new Date(ws.created_at), 'MMM d, yyyy')}
                 </td>
               </tr>
             ))}

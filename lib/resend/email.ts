@@ -50,7 +50,7 @@ export async function sendPublishEmail(input: SendPublishEmailParams): Promise<v
   const resend = getResendClient()
   const changelogUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${input.workspaceSlug}`
 
-  const { data: sendRecord } = await service
+  const { data: sendRecord, error: sendRecordError } = await service
     .from('email_sends')
     .insert({
       workspace_id: input.workspaceId,
@@ -61,9 +61,14 @@ export async function sendPublishEmail(input: SendPublishEmailParams): Promise<v
     .select()
     .single()
 
+  if (sendRecordError || !sendRecord) {
+    console.error('email_sends insert failed:', sendRecordError)
+  }
+
   try {
     const BATCH_SIZE = 100
     for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
+      if (i > 0) await new Promise(resolve => setTimeout(resolve, 200))
       await Promise.all(
         subscribers.slice(i, i + BATCH_SIZE).map(({ email, unsubscribe_token }) =>
           resend.emails.send({

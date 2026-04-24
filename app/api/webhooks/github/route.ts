@@ -11,7 +11,6 @@ export async function POST(request: Request) {
   const signature = request.headers.get('x-hub-signature-256') ?? ''
   const event = request.headers.get('x-github-event') ?? ''
 
-  // Only process pull_request events
   if (event !== 'pull_request') {
     return NextResponse.json({ ok: true })
   }
@@ -25,13 +24,11 @@ export async function POST(request: Request) {
 
   const pr = parsePullRequestEvent(payload)
   if (!pr) {
-    // Not a merged PR — silently acknowledge
     return NextResponse.json({ ok: true })
   }
 
   const service = createSupabaseServiceClient()
 
-  // Look up the repo record by github_repo_id
   const { data: repo } = await service
     .from('repos')
     .select('id, workspace_id, webhook_secret, is_active')
@@ -39,7 +36,6 @@ export async function POST(request: Request) {
     .single()
 
   if (!repo) {
-    // Unknown repo — acknowledge to prevent GitHub retries
     return NextResponse.json({ ok: true })
   }
 
@@ -47,13 +43,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true })
   }
 
-  // Validate HMAC with per-repo secret
   const valid = await validateGitHubWebhookSignature(rawBody, signature, repo.webhook_secret)
   if (!valid) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
-  // Idempotency: skip if entry for this PR already exists
+  // Idempotency pre-check (optimisation: avoids calling OpenAI for duplicates)
   const { data: existing } = await service
     .from('changelog_entries')
     .select('id')
@@ -65,7 +60,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, duplicate: true })
   }
 
-  // Check ignore rules — fail open (if DB unreachable, create the draft anyway)
   const { data: ignoreRules } = await service
     .from('pr_ignore_rules')
     .select('rule_type, pattern')
@@ -75,14 +69,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, ignored: true })
   }
 
-  // Generate AI draft
-  const draft = await generateChangelogDraft({
-    prTitle: pr.prTitle,
-    prBody: pr.prBody,
-  })
+  // AI draft generation — failures are non-fatal; we create the entry without a draft
+  let draft = { title: pr.prTitle, body: '' }
+  try {
+    draft = await generateChangelogDraft({ prTitle: pr.prTitle, prBody: pr.prBody })
+  } catch {
+    // OpenAI unavailable — entry is created with empty draft; user can regenerate
+  }
 
-  // Create the draft changelog entry
-  await service.from('changelog_entries').insert({
+  const { error: insertError } = await service.from('changelog_entries').insert({
     workspace_id: repo.workspace_id,
     repo_id: repo.id,
     pr_number: pr.prNumber,
@@ -96,6 +91,14 @@ export async function POST(request: Request) {
     final_content: draft.body,
     status: 'draft',
   })
+
+  if (insertError) {
+    // Unique violation means a concurrent webhook already created this entry
+    if (insertError.code === '23505') {
+      return NextResponse.json({ ok: true, duplicate: true })
+    }
+    return NextResponse.json({ error: 'Failed to create entry' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }

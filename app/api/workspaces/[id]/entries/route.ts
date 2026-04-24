@@ -14,8 +14,8 @@ export async function GET(
 
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
-  const page = parseInt(searchParams.get('page') ?? '1')
-  const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 50)
+  const page = parseInt(searchParams.get('page') ?? '1') || 1
+  const limit = Math.min(parseInt(searchParams.get('limit') ?? '20') || 20, 50)
   const offset = (page - 1) * limit
 
   let query = supabase
