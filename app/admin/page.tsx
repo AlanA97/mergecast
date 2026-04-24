@@ -7,7 +7,7 @@ export default async function AdminPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const isAdmin = user.user_metadata?.is_admin === true
+  const isAdmin = user.app_metadata?.is_admin === true
   if (!isAdmin) redirect('/dashboard')
 
   const service = createSupabaseServiceClient()
