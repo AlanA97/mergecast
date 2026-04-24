@@ -41,9 +41,9 @@ export default function LandingPage() {
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
         <span className="font-semibold">Mergecast</span>
         <div className="flex items-center gap-4">
-          <Link href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">
+          <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">
             Pricing
-          </Link>
+          </a>
           <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
             Sign in
           </Link>
