@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import Link from "next/link";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -52,7 +53,7 @@ export default async function LoginPage({
         </form>
         <p className="text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <a href="/signup" className="underline">Sign up free</a>
+          <Link href="/signup" className="underline">Sign up free</Link>
         </p>
       </div>
     </div>

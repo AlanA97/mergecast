@@ -3,7 +3,7 @@ import { getStripeClient } from '@/lib/stripe/client'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-const PortalSchema = z.object({ workspace_id: z.string().uuid() })
+const PortalSchema = z.object({ workspace_id: z.uuid() })
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient()

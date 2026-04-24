@@ -108,7 +108,7 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
           <Textarea
             value={content}
             onChange={e => setContent(e.target.value)}
-            className="min-h-[280px] font-mono text-sm"
+            className="min-h-70 font-mono text-sm"
           />
         </div>
         {error && <p className="text-destructive text-sm">{error}</p>}

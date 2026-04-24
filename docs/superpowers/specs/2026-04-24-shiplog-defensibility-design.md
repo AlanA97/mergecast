@@ -23,14 +23,14 @@ The MVP is functionally complete but strategically weak:
 
 Six targeted changes. Nothing else.
 
-| # | Feature | Type |
-|---|---|---|
-| 1 | "Powered by Mergecast" badge on public changelogs | Viral loop + spec gap |
-| 2 | Entry view analytics (view count per entry) | Retention signal + data moat |
-| 3 | PR ignore rules (per-workspace noise filter) | Churn prevention + product quality |
-| 4 | RSS feed at `/[slug]/rss.xml` | Developer credibility + spec gap |
-| 5 | Widget-first landing page rewrite | Positioning fix |
-| 6 | Approaching-limit conversion banner | Conversion + spec gap |
+| # | Feature                                           | Type                               |
+|---|---------------------------------------------------|------------------------------------|
+| 1 | "Powered by Mergecast" badge on public changelogs | Viral loop + spec gap              |
+| 2 | Entry view analytics (view count per entry)       | Retention signal + data moat       |
+| 3 | PR ignore rules (per-workspace noise filter)      | Churn prevention + product quality |
+| 4 | RSS feed at `/[slug]/rss.xml`                     | Developer credibility + spec gap   |
+| 5 | Widget-first landing page rewrite                 | Positioning fix                    |
+| 6 | Approaching-limit conversion banner               | Conversion + spec gap              |
 
 ---
 
@@ -80,13 +80,13 @@ CREATE POLICY "workspace members can manage ignore rules"
 
 **Default rules seeded on workspace creation** (added to the existing workspace POST handler):
 
-| rule_type | pattern |
-|---|---|
-| `title_prefix` | `chore:` |
-| `title_prefix` | `docs:` |
-| `title_prefix` | `ci:` |
-| `title_prefix` | `test:` |
-| `title_contains` | `bump deps` |
+| rule_type        | pattern      |
+|------------------|--------------|
+| `title_prefix`   | `chore:`     |
+| `title_prefix`   | `docs:`      |
+| `title_prefix`   | `ci:`        |
+| `title_prefix`   | `test:`      |
+| `title_contains` | `bump deps`  |
 | `title_contains` | `dependabot` |
 
 These cover the most common PR noise categories. Users can delete any of them.
@@ -240,25 +240,25 @@ Returns `Content-Type: application/rss+xml; charset=utf-8`. Fetches the same pub
 
 **Logic:** The dashboard already fetches workspace data (via `/api/workspaces`). Extend to use `publish_count_this_month` and `plan`:
 
-| Condition | Banner |
-|---|---|
-| `plan === 'free'` and `count === 2` | Yellow: "1 publish left this month · [Upgrade to remove limits →]" |
-| `plan === 'free'` and `count >= 3` | Red: "Monthly limit reached · [Upgrade to publish →]" — links to `/dashboard/billing` |
-| Any other condition | No banner |
+| Condition                           | Banner                                                                                |
+|-------------------------------------|---------------------------------------------------------------------------------------|
+| `plan === 'free'` and `count === 2` | Yellow: "1 publish left this month · [Upgrade to remove limits →]"                    |
+| `plan === 'free'` and `count >= 3`  | Red: "Monthly limit reached · [Upgrade to publish →]" — links to `/dashboard/billing` |
+| Any other condition                 | No banner                                                                             |
 
-**Style:** A slim dismissible banner below the page header (not a modal, not blocking). The dismiss is session-only — it reappears on next load. Clicking "Upgrade" navigates to `/dashboard/billing`.
+**Style:** A slim dismissible banner below the page header (not a modal, not blocking). To dismiss is session-only — it reappears on next load. Clicking "Upgrade" navigates to `/dashboard/billing`.
 
 ---
 
 ## Error Handling
 
-| Scenario | Handling |
-|---|---|
-| `increment_entry_views` RPC fails | Silently ignored — analytics are best-effort, never block page render |
+| Scenario                                   | Handling                                                                                                            |
+|--------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `increment_entry_views` RPC fails          | Silently ignored — analytics are best-effort, never block page render                                               |
 | Ignore rules DB unreachable during webhook | Fail open — create the draft anyway (log warning). Better to create a noisy draft than silently drop a real update. |
-| RSS feed: workspace not found | Return 404 with plain text "Not found" |
-| RSS feed: no published entries | Return valid RSS with empty `<channel>` (no `<item>` elements) |
-| `POST /ignore-rules` with duplicate | Return 409 `RULE_ALREADY_EXISTS` |
+| RSS feed: workspace not found              | Return 404 with plain text "Not found"                                                                              |
+| RSS feed: no published entries             | Return valid RSS with empty `<channel>` (no `<item>` elements)                                                      |
+| `POST /ignore-rules` with duplicate        | Return 409 `RULE_ALREADY_EXISTS`                                                                                    |
 
 ---
 
@@ -266,11 +266,11 @@ Returns `Content-Type: application/rss+xml; charset=utf-8`. Fetches the same pub
 
 New tests to add alongside implementation:
 
-| Test file | What it covers |
-|---|---|
+| Test file                        | What it covers                                                                              |
+|----------------------------------|---------------------------------------------------------------------------------------------|
 | `tests/lib/ignore-rules.test.ts` | `title_prefix`, `title_contains`, `label` matching; case-insensitivity; no rules = no match |
-| `tests/api/ignore-rules.test.ts` | POST creates rule; DELETE removes it; auth guard; duplicate → 409 |
-| `tests/api/rss.test.ts` | Valid RSS structure; escapes special XML chars in title/content; empty feed is valid |
+| `tests/api/ignore-rules.test.ts` | POST creates rule; DELETE removes it; auth guard; duplicate → 409                           |
+| `tests/api/rss.test.ts`          | Valid RSS structure; escapes special XML chars in title/content; empty feed is valid        |
 
 Existing `tests/lib/github-webhook.test.ts` — add cases for "PR ignored by rule" and "labels parsed from payload".
 

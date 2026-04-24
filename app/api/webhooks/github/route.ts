@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
-  // Idempotency pre-check (optimisation: avoids calling OpenAI for duplicates)
+  // Idempotency pre-check (optimization: avoids calling OpenAI for duplicates)
   const { data: existing } = await service
     .from('changelog_entries')
     .select('id')

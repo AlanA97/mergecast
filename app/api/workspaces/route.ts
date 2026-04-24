@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const body = await request.json()
   const parsed = CreateWorkspaceSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json({ error: z.treeifyError(parsed.error) }, { status: 400 })
   }
 
   const { name, slug } = parsed.data

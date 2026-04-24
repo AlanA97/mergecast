@@ -120,9 +120,9 @@ email_sends      (id, workspace_id, entry_id, sent_at, recipient_count)
 | Tier    | Price  | Limits                                                        |
 |---------|--------|---------------------------------------------------------------|
 | Free    | $0     | 1 repo, 3 publishes/mo, 100 subscribers, mergecast.co subdomain |
-| Starter | $29/mo | 1 repo, unlimited publishes, custom domain, 1k subscribers    |
-| Growth  | $59/mo | 3 repos, unlimited, 10k subscribers, widget + email           |
-| Scale   | $99/mo | Unlimited repos, 50k subscribers, team seats                  |
+| Starter | $19/mo | 1 repo, unlimited publishes, custom domain, 1k subscribers    |
+| Growth  | $49/mo | 3 repos, unlimited, 10k subscribers, widget + email           |
+| Scale   | $79/mo | Unlimited repos, 50k subscribers, team seats                  |
 
 ---
 

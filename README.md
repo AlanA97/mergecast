@@ -34,17 +34,17 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Database & Auth | Supabase (PostgreSQL + Row-Level Security) |
-| UI | shadcn/ui, Radix UI, Tailwind CSS, Lucide React |
-| AI | OpenAI GPT-4o |
-| Email | Resend |
-| Payments | Stripe |
-| GitHub | GitHub App (Octokit) |
-| Widget bundler | esbuild |
-| Tests | Vitest, Testing Library |
+| Layer           | Technology                                      |
+|-----------------|-------------------------------------------------|
+| Framework       | Next.js 16 (App Router)                         |
+| Database & Auth | Supabase (PostgreSQL + Row-Level Security)      |
+| UI              | shadcn/ui, Radix UI, Tailwind CSS, Lucide React |
+| AI              | OpenAI GPT-4o                                   |
+| Email           | Resend                                          |
+| Payments        | Stripe                                          |
+| GitHub          | GitHub App (Octokit)                            |
+| Widget bundler  | esbuild                                         |
+| Tests           | Vitest, Testing Library                         |
 
 ---
 
@@ -166,9 +166,9 @@ OPENAI_API_KEY=sk-...
 # ── Stripe ───────────────────────────────────────────────────────────────────
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_STARTER_MONTHLY=price_...   # $29/mo
-STRIPE_PRICE_GROWTH_MONTHLY=price_...    # $59/mo
-STRIPE_PRICE_SCALE_MONTHLY=price_...     # $99/mo
+STRIPE_PRICE_STARTER_MONTHLY=price_...   # $19/mo
+STRIPE_PRICE_GROWTH_MONTHLY=price_...    # $49/mo
+STRIPE_PRICE_SCALE_MONTHLY=price_...     # $79/mo
 
 # ── Email (Resend) ────────────────────────────────────────────────────────────
 RESEND_API_KEY=re_...
@@ -183,12 +183,12 @@ CRON_SECRET=<random-string>
 
 Plans are defined in `lib/plans.ts`:
 
-| Plan | Price | Publishes/mo | Subscribers | Repos | Remove badge |
-|---|---|---|---|---|---|
-| Free | $0 | 3 | 100 | 1 | No |
-| Starter | $29 | Unlimited | 1,000 | 1 | No |
-| Growth | $59 | Unlimited | 10,000 | 3 | Yes |
-| Scale | $99 | Unlimited | 50,000 | Unlimited | Yes |
+| Plan    | Price | Publishes/mo | Subscribers | Repos     | Remove badge |
+|---------|-------|--------------|-------------|-----------|--------------|
+| Free    | $0    | 3            | 100         | 1         | No           |
+| Starter | $19   | Unlimited    | 1,000       | 1         | No           |
+| Growth  | $49   | Unlimited    | 10,000      | 3         | Yes          |
+| Scale   | $79   | Unlimited    | 50,000      | Unlimited | Yes          |
 
 ---
 
@@ -205,7 +205,7 @@ Add a single `<script>` tag anywhere on your page:
 ></script>
 ```
 
-The widget renders a toggleable changelog drawer in the bottom-right corner. You can customise it from the **Widget** tab in the dashboard (accent color, position, button label, theme).
+The widget renders a toggleable changelog drawer in the bottom-right corner. You can customize it from the **Widget** tab in the dashboard (accent color, position, button label, theme).
 
 ### Connecting a GitHub Repository
 

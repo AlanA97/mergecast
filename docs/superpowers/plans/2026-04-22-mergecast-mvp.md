@@ -3628,9 +3628,9 @@ git commit -m "feat: embeddable widget — vanilla JS bundle, serve route, dashb
 1. Go to stripe.com → create account
 2. Dashboard → Developers → API keys → copy Secret key → `STRIPE_SECRET_KEY`
 3. Create 3 products with monthly recurring prices:
-   - Starter: $29/mo → copy price ID → `STRIPE_PRICE_STARTER_MONTHLY`
-   - Growth: $59/mo → copy price ID → `STRIPE_PRICE_GROWTH_MONTHLY`
-   - Scale: $99/mo → copy price ID → `STRIPE_PRICE_SCALE_MONTHLY`
+   - Starter: $19/mo → copy price ID → `STRIPE_PRICE_STARTER_MONTHLY`
+   - Growth: $49/mo → copy price ID → `STRIPE_PRICE_GROWTH_MONTHLY`
+   - Scale: $79/mo → copy price ID → `STRIPE_PRICE_SCALE_MONTHLY`
 4. Developers → Webhooks → Add endpoint:
    - URL: `https://<your-vercel-url>/api/webhooks/stripe`
    - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
@@ -3925,21 +3925,21 @@ export async function GET() {
       {
         id: 'starter',
         name: 'Starter',
-        price: 29,
+        price: 19,
         price_id: process.env.STRIPE_PRICE_STARTER_MONTHLY,
         limits: PLAN_LIMITS.starter,
       },
       {
         id: 'growth',
         name: 'Growth',
-        price: 59,
+        price: 49,
         price_id: process.env.STRIPE_PRICE_GROWTH_MONTHLY,
         limits: PLAN_LIMITS.growth,
       },
       {
         id: 'scale',
         name: 'Scale',
-        price: 99,
+        price: 79,
         price_id: process.env.STRIPE_PRICE_SCALE_MONTHLY,
         limits: PLAN_LIMITS.scale,
       },
@@ -4179,8 +4179,8 @@ const FEATURES = [
 
 const PRICING = [
   { name: 'Free',    price: '$0',   features: ['1 repo', '3 publishes/mo', '100 subscribers', 'mergecast.co subdomain'], cta: 'Start free', variant: 'outline' as const },
-  { name: 'Starter', price: '$29',  features: ['1 repo', 'Unlimited publishes', '1,000 subscribers', 'Custom domain'], cta: 'Get started', variant: 'default' as const, highlighted: true },
-  { name: 'Growth',  price: '$59',  features: ['3 repos', 'Unlimited publishes', '10,000 subscribers', 'Widget + email'], cta: 'Get started', variant: 'outline' as const },
+  { name: 'Starter', price: '$21',  features: ['1 repo', 'Unlimited publishes', '1,000 subscribers', 'Custom domain'], cta: 'Get started', variant: 'default' as const, highlighted: true },
+  { name: 'Growth',  price: '$49',  features: ['3 repos', 'Unlimited publishes', '10,000 subscribers', 'Widget + email'], cta: 'Get started', variant: 'outline' as const },
 ]
 
 export default function LandingPage() {
@@ -4359,7 +4359,7 @@ export default async function AdminPage() {
 
   const paidPlans = ['starter', 'growth', 'scale']
   const mrrEstimate = (workspaces ?? []).reduce((sum, ws) => {
-    const prices: Record<string, number> = { starter: 29, growth: 59, scale: 99 }
+    const prices: Record<string, number> = { starter: 19, growth: 49, scale: 79 }
     return sum + (prices[ws.plan] ?? 0)
   }, 0)
 

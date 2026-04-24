@@ -23,7 +23,7 @@ export default async function AdminPage() {
 
   const paidPlans = ['starter', 'growth', 'scale']
   const mrrEstimate = (workspaces ?? []).reduce((sum, ws) => {
-    const prices: Record<string, number> = { starter: 29, growth: 59, scale: 99 }
+    const prices: Record<string, number> = { starter: 19, growth: 49, scale: 79 }
     return sum + (prices[ws.plan] ?? 0)
   }, 0)
 

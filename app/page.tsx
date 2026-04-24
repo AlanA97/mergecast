@@ -20,14 +20,14 @@ const PRICING = [
   },
   {
     name: 'Starter',
-    price: '$29',
+    price: '$19',
     features: ['1 repo', 'Unlimited publishes', '1,000 subscribers', 'Custom domain'],
     cta: 'Get started',
     highlighted: true,
   },
   {
     name: 'Growth',
-    price: '$59',
+    price: '$49',
     features: ['3 repos', 'Unlimited publishes', '10,000 subscribers', 'Remove Mergecast badge'],
     cta: 'Get started',
     highlighted: false,
@@ -41,9 +41,9 @@ export default function LandingPage() {
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
         <span className="font-semibold">Mergecast</span>
         <div className="flex items-center gap-4">
-          <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground">
             Pricing
-          </a>
+          </Link>
           <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
             Sign in
           </Link>

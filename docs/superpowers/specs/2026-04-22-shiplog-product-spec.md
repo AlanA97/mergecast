@@ -17,7 +17,7 @@
 
 ---
 
-## 1. Screens
+## Screens
 
 ### 1.1 Public Screens (unauthenticated)
 
@@ -211,7 +211,7 @@ Main authenticated interface. Left sidebar nav.
 
 ---
 
-## 2. Database Schema
+## Database Schema
 
 ```sql
 -- ─────────────────────────────────────────
@@ -358,97 +358,97 @@ CREATE TABLE changelog_settings (
 
 ---
 
-## 3. API Routes
+## API Routes
 
 All authenticated routes require a valid Supabase session. Workspace ownership validated on every request — never trust workspace_id from the client without a membership check.
 
 ### 3.1 Public Routes (no auth)
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/public/changelog/[slug]` | Returns published entries for a workspace slug (for widget + SSR fallback). Query params: `limit`, `before` (cursor). |
-| `POST` | `/api/public/subscribe` | Subscribe an email to a workspace's changelog. Body: `{ workspace_id, email }`. Creates unconfirmed subscriber, sends confirmation email. |
-| `GET` | `/api/public/confirm-subscription` | Confirms subscriber. Query: `token`. Sets `confirmed=true`, `confirmed_at=now()`. |
-| `GET` | `/api/public/unsubscribe` | Unsubscribes. Query: `token`. Sets `unsubscribed_at=now()`. |
+| Method | Path                               | Description                                                                                                                               |
+|--------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`  | `/api/public/changelog/[slug]`     | Returns published entries for a workspace slug (for widget + SSR fallback). Query params: `limit`, `before` (cursor).                     |
+| `POST` | `/api/public/subscribe`            | Subscribe an email to a workspace's changelog. Body: `{ workspace_id, email }`. Creates unconfirmed subscriber, sends confirmation email. |
+| `GET`  | `/api/public/confirm-subscription` | Confirms subscriber. Query: `token`. Sets `confirmed=true`, `confirmed_at=now()`.                                                         |
+| `GET`  | `/api/public/unsubscribe`          | Unsubscribes. Query: `token`. Sets `unsubscribed_at=now()`.                                                                               |
 
 ### 3.2 Authenticated Routes
 
 #### Workspace
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/workspaces` | Create workspace. Body: `{ name, slug }`. Validates slug uniqueness. Creates workspace + workspace_member (owner) + default widget_settings + changelog_settings. |
-| `GET` | `/api/workspaces` | List workspaces for current user (via workspace_members). |
-| `GET` | `/api/workspaces/[id]` | Get workspace details + plan usage stats. |
+| Method | Path                   | Description                                                                                                                                                       |
+|--------|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `POST` | `/api/workspaces`      | Create workspace. Body: `{ name, slug }`. Validates slug uniqueness. Creates workspace + workspace_member (owner) + default widget_settings + changelog_settings. |
+| `GET`  | `/api/workspaces`      | List workspaces for current user (via workspace_members).                                                                                                         |
+| `GET`  | `/api/workspaces/[id]` | Get workspace details + plan usage stats.                                                                                                                         |
 
 #### Entries
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/workspaces/[id]/entries` | List entries. Query: `status`, `page`, `limit`. |
-| `GET` | `/api/workspaces/[id]/entries/[entryId]` | Get single entry with all fields. |
-| `PATCH` | `/api/workspaces/[id]/entries/[entryId]` | Update `title`, `final_content`, `status` (to archived/ignored only — publish has its own endpoint). |
-| `POST` | `/api/workspaces/[id]/entries/[entryId]/publish` | Publish entry. Checks plan quota. Sets `status=published`, `published_at=now()`. Increments `publish_count_this_month`. Queues email send job. Returns updated entry. |
-| `POST` | `/api/workspaces/[id]/entries/[entryId]/regenerate` | Re-runs OpenAI on the original PR data. Replaces `ai_draft`. Does not touch `final_content` if already edited. |
+| Method  | Path                                                | Description                                                                                                                                                           |
+|---------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`   | `/api/workspaces/[id]/entries`                      | List entries. Query: `status`, `page`, `limit`.                                                                                                                       |
+| `GET`   | `/api/workspaces/[id]/entries/[entryId]`            | Get single entry with all fields.                                                                                                                                     |
+| `PATCH` | `/api/workspaces/[id]/entries/[entryId]`            | Update `title`, `final_content`, `status` (to archived/ignored only — publish has its own endpoint).                                                                  |
+| `POST`  | `/api/workspaces/[id]/entries/[entryId]/publish`    | Publish entry. Checks plan quota. Sets `status=published`, `published_at=now()`. Increments `publish_count_this_month`. Queues email send job. Returns updated entry. |
+| `POST`  | `/api/workspaces/[id]/entries/[entryId]/regenerate` | Re-runs OpenAI on the original PR data. Replaces `ai_draft`. Does not touch `final_content` if already edited.                                                        |
 
 #### Repos
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/workspaces/[id]/repos` | List connected repos. |
-| `POST` | `/api/workspaces/[id]/repos` | Connect repo. Body: `{ github_installation_id, github_repo_id, full_name }`. Validates plan repo limit. Registers GitHub webhook. Stores `webhook_secret`. |
-| `DELETE` | `/api/workspaces/[id]/repos/[repoId]` | Disconnect repo. Deletes GitHub webhook. Sets `is_active=false` (soft delete to preserve historical entries). |
+| Method   | Path                                  | Description                                                                                                                                                |
+|----------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/workspaces/[id]/repos`          | List connected repos.                                                                                                                                      |
+| `POST`   | `/api/workspaces/[id]/repos`          | Connect repo. Body: `{ github_installation_id, github_repo_id, full_name }`. Validates plan repo limit. Registers GitHub webhook. Stores `webhook_secret`. |
+| `DELETE` | `/api/workspaces/[id]/repos/[repoId]` | Disconnect repo. Deletes GitHub webhook. Sets `is_active=false` (soft delete to preserve historical entries).                                              |
 
 #### Subscribers
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/workspaces/[id]/subscribers` | List subscribers. Query: `confirmed`, `page`, `limit`. |
-| `POST` | `/api/workspaces/[id]/subscribers/import` | Bulk import emails (CSV body). Starter+ only. Creates confirmed subscribers directly (skips confirmation email — user takes responsibility). |
-| `DELETE` | `/api/workspaces/[id]/subscribers/[subscriberId]` | Remove subscriber. |
+| Method   | Path                                              | Description                                                                                                                                  |
+|----------|---------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/workspaces/[id]/subscribers`                | List subscribers. Query: `confirmed`, `page`, `limit`.                                                                                       |
+| `POST`   | `/api/workspaces/[id]/subscribers/import`         | Bulk import emails (CSV body). Starter+ only. Creates confirmed subscribers directly (skips confirmation email — user takes responsibility). |
+| `DELETE` | `/api/workspaces/[id]/subscribers/[subscriberId]` | Remove subscriber.                                                                                                                           |
 
 #### Settings
 
-| Method | Path | Description |
-|---|---|---|
-| `PATCH` | `/api/workspaces/[id]/settings` | Update workspace name, logo (URL after Supabase Storage upload). Slug changes blocked after first publish. |
-| `GET` | `/api/workspaces/[id]/widget-settings` | Get widget settings. |
-| `PATCH` | `/api/workspaces/[id]/widget-settings` | Update widget settings. |
-| `GET` | `/api/workspaces/[id]/changelog-settings` | Get changelog page settings. |
-| `PATCH` | `/api/workspaces/[id]/changelog-settings` | Update page title, description, colors, `show_powered_by`. |
-| `POST` | `/api/workspaces/[id]/changelog-settings/verify-domain` | Trigger CNAME verification check for custom domain. |
+| Method  | Path                                                    | Description                                                                                                |
+|---------|---------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| `PATCH` | `/api/workspaces/[id]/settings`                         | Update workspace name, logo (URL after Supabase Storage upload). Slug changes blocked after first publish. |
+| `GET`   | `/api/workspaces/[id]/widget-settings`                  | Get widget settings.                                                                                       |
+| `PATCH` | `/api/workspaces/[id]/widget-settings`                  | Update widget settings.                                                                                    |
+| `GET`   | `/api/workspaces/[id]/changelog-settings`               | Get changelog page settings.                                                                               |
+| `PATCH` | `/api/workspaces/[id]/changelog-settings`               | Update page title, description, colors, `show_powered_by`.                                                 |
+| `POST`  | `/api/workspaces/[id]/changelog-settings/verify-domain` | Trigger CNAME verification check for custom domain.                                                        |
 
 #### Billing
 
-| Method | Path | Description |
-|---|---|---|
+| Method | Path                           | Description                                                                            |
+|--------|--------------------------------|----------------------------------------------------------------------------------------|
 | `POST` | `/api/billing/create-checkout` | Create Stripe Checkout session. Body: `{ workspace_id, price_id }`. Returns `{ url }`. |
-| `POST` | `/api/billing/create-portal` | Create Stripe Customer Portal session. Returns `{ url }`. |
-| `GET` | `/api/billing/plans` | Return plan definitions (limits, pricing) — static config, not from Stripe. |
+| `POST` | `/api/billing/create-portal`   | Create Stripe Customer Portal session. Returns `{ url }`.                              |
+| `GET`  | `/api/billing/plans`           | Return plan definitions (limits, pricing) — static config, not from Stripe.            |
 
 #### Admin
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/admin/workspaces` | List all workspaces with plan and usage. Requires `is_admin=true` on user. |
-| `PATCH` | `/api/admin/workspaces/[id]` | Override plan. Body: `{ plan }`. Bypasses Stripe. |
+| Method  | Path                         | Description                                                                |
+|---------|------------------------------|----------------------------------------------------------------------------|
+| `GET`   | `/api/admin/workspaces`      | List all workspaces with plan and usage. Requires `is_admin=true` on user. |
+| `PATCH` | `/api/admin/workspaces/[id]` | Override plan. Body: `{ plan }`. Bypasses Stripe.                          |
 
 ### 3.3 Webhook Endpoints
 
-| Method | Path | Description |
-|---|---|---|
+| Method | Path                   | Description                                                                                                                                                                                                               |
+|--------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `POST` | `/api/webhooks/github` | Receives GitHub `pull_request` events. Validates HMAC-SHA256 signature using per-repo `webhook_secret`. Processes only `action=closed` + `merged=true`. Queues AI generation. Returns 200 immediately (async processing). |
-| `POST` | `/api/webhooks/stripe` | Receives Stripe events. Validates webhook signature. Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`. |
+| `POST` | `/api/webhooks/stripe` | Receives Stripe events. Validates webhook signature. Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`.                                   |
 
 ### 3.4 Widget Endpoint
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/widget/[slug].js` | Returns the embeddable JS bundle, personalized with the workspace's widget settings. Cached aggressively at CDN edge. On publish, cache is purged. |
+| Method | Path                | Description                                                                                                                                        |
+|--------|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`  | `/widget/[slug].js` | Returns the embeddable JS bundle, personalized with the workspace's widget settings. Cached aggressively at CDN edge. On publish, cache is purged. |
 
 ---
 
-## 4. User Flows
+## User Flows
 
 ### Flow 1: Sign Up → First Published Entry
 
@@ -542,7 +542,7 @@ All authenticated routes require a valid Supabase session. Workspace ownership v
 
 ---
 
-## 5. Payment Logic
+## Payment Logic
 
 ### Plan Limits
 
@@ -578,12 +578,12 @@ On subscriber limit enforcement:
 
 ### Stripe Events Handled
 
-| Event | Action |
-|---|---|
-| `checkout.session.completed` | Set `plan`, `stripe_subscription_id`, `stripe_price_id`, `stripe_customer_id` on workspace |
-| `customer.subscription.updated` | Sync plan from `price_id` lookup (handles upgrades/downgrades mid-cycle) |
-| `customer.subscription.deleted` | Set `plan='free'`, clear `stripe_subscription_id`, `stripe_price_id` |
-| `invoice.payment_failed` | No immediate plan downgrade. After 3 failed attempts (handled by Stripe Dunning), `subscription.deleted` fires and triggers downgrade |
+| Event                           | Action                                                                                                                                |
+|---------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `checkout.session.completed`    | Set `plan`, `stripe_subscription_id`, `stripe_price_id`, `stripe_customer_id` on workspace                                            |
+| `customer.subscription.updated` | Sync plan from `price_id` lookup (handles upgrades/downgrades mid-cycle)                                                              |
+| `customer.subscription.deleted` | Set `plan='free'`, clear `stripe_subscription_id`, `stripe_price_id`                                                                  |
+| `invoice.payment_failed`        | No immediate plan downgrade. After 3 failed attempts (handled by Stripe Dunning), `subscription.deleted` fires and triggers downgrade |
 
 ### Stripe Price ID → Plan Mapping
 
@@ -598,69 +598,69 @@ Server-side function: `getPlanFromPriceId(priceId: string): Plan`
 
 ---
 
-## 6. Edge Cases
+## Edge Cases
 
 ### GitHub Webhook
 
-| Case | Handling |
-|---|---|
-| Invalid HMAC signature | Return 401. Log attempt. |
-| PR event but `merged=false` (closed without merge) | Ignore silently. Return 200. |
-| Repo not found in DB (webhook from unregistered or deleted repo) | Return 200 (so GitHub doesn't retry). Log warning. |
-| Repo is `is_active=false` | Return 200. Do not create entry. |
-| Workspace on free tier already at publish quota | Still create draft entry. Block only at publish time, not at ingestion. |
-| Duplicate webhook delivery (GitHub retry) | Check for existing entry with same `repo_id + pr_number`. If exists, skip. |
-| PR title is empty or very short (< 5 chars) | OpenAI still runs — prompt handles it. If OpenAI returns empty draft, entry is created with title="Untitled update" and empty draft. User must edit manually. |
-| PR body is empty | OpenAI generates from title alone. Works fine for simple PRs. |
-| OpenAI API timeout (>30s) | Entry created with `ai_draft=null`. Dashboard shows "AI generation pending — retry available". User can click "Regenerate". |
-| OpenAI API error (5xx) | Same as timeout. Retry available. |
-| OpenAI returns inappropriate/hallucinated content | Mandatory review step catches this. Never auto-published. |
+| Case                                                             | Handling                                                                                                                                                      |
+|------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Invalid HMAC signature                                           | Return 401. Log attempt.                                                                                                                                      |
+| PR event but `merged=false` (closed without merge)               | Ignore silently. Return 200.                                                                                                                                  |
+| Repo not found in DB (webhook from unregistered or deleted repo) | Return 200 (so GitHub doesn't retry). Log warning.                                                                                                            |
+| Repo is `is_active=false`                                        | Return 200. Do not create entry.                                                                                                                              |
+| Workspace on free tier already at publish quota                  | Still create draft entry. Block only at publish time, not at ingestion.                                                                                       |
+| Duplicate webhook delivery (GitHub retry)                        | Check for existing entry with same `repo_id + pr_number`. If exists, skip.                                                                                    |
+| PR title is empty or very short (< 5 chars)                      | OpenAI still runs — prompt handles it. If OpenAI returns empty draft, entry is created with title="Untitled update" and empty draft. User must edit manually. |
+| PR body is empty                                                 | OpenAI generates from title alone. Works fine for simple PRs.                                                                                                 |
+| OpenAI API timeout (>30s)                                        | Entry created with `ai_draft=null`. Dashboard shows "AI generation pending — retry available". User can click "Regenerate".                                   |
+| OpenAI API error (5xx)                                           | Same as timeout. Retry available.                                                                                                                             |
+| OpenAI returns inappropriate/hallucinated content                | Mandatory review step catches this. Never auto-published.                                                                                                     |
 
 ### Subscriptions & Email
 
-| Case | Handling |
-|---|---|
-| Email already subscribed (duplicate) | Return 200 (don't expose subscriber list). Re-send confirmation if not yet confirmed. |
-| Confirmation token expired | Tokens do not expire in MVP. If re-confirmation needed, user re-subscribes (deduplication handles it). |
-| Unsubscribe token used twice | Idempotent — `unsubscribed_at` already set, return success page. |
-| Email send partially fails (Resend partial error) | Log failed recipients in `email_sends.error_message`. Mark status='partial'. Do not retry automatically in MVP — admin can investigate. |
-| Workspace has 0 confirmed subscribers on publish | Skip email send entirely. No `email_sends` record created. |
-| Subscriber over plan limit tries to subscribe | Return 403 `SUBSCRIBER_LIMIT_REACHED`. Public page shows "Subscriptions temporarily unavailable". |
-| Resend API down | Email send fails gracefully. Entry still publishes. `email_sends` status='failed'. Manual retry not supported in MVP — acknowledged limitation. |
+| Case                                              | Handling                                                                                                                                        |
+|---------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| Email already subscribed (duplicate)              | Return 200 (don't expose subscriber list). Re-send confirmation if not yet confirmed.                                                           |
+| Confirmation token expired                        | Tokens do not expire in MVP. If re-confirmation needed, user re-subscribes (deduplication handles it).                                          |
+| Unsubscribe token used twice                      | Idempotent — `unsubscribed_at` already set, return success page.                                                                                |
+| Email send partially fails (Resend partial error) | Log failed recipients in `email_sends.error_message`. Mark status='partial'. Do not retry automatically in MVP — admin can investigate.         |
+| Workspace has 0 confirmed subscribers on publish  | Skip email send entirely. No `email_sends` record created.                                                                                      |
+| Subscriber over plan limit tries to subscribe     | Return 403 `SUBSCRIBER_LIMIT_REACHED`. Public page shows "Subscriptions temporarily unavailable".                                               |
+| Resend API down                                   | Email send fails gracefully. Entry still publishes. `email_sends` status='failed'. Manual retry not supported in MVP — acknowledged limitation. |
 
 ### Billing & Plans
 
-| Case | Handling |
-|---|---|
-| Stripe webhook arrives out of order (update before create) | Use `stripe_subscription_id` as idempotency key. Always fetch latest subscription state from Stripe on ambiguous events. |
-| User closes Stripe Checkout without completing | No action needed — no webhook fired, plan unchanged. |
-| User downgrades from Growth (3 repos) to Starter (1 repo) | Existing repos not disconnected. User sees warning banner: "Your plan supports 1 repo — disconnect 2 repos to comply." Enforce limit only on connecting new repos, not on existing. |
-| User's card declines mid-subscription (dunning) | Stripe handles retry logic. After dunning period ends, `subscription.deleted` fires → downgrade to free. User emailed by Stripe (not our system). |
-| Two Stripe webhooks for same event (duplicate delivery) | All Stripe webhook handlers are idempotent. Use `stripe_subscription_id` + `status` to detect and skip duplicate state updates. |
-| Cron job fails to reset monthly quotas | Lazy reset fallback in publish endpoint catches this (checks `publish_quota_reset_at < now()`). |
+| Case                                                       | Handling                                                                                                                                                                            |
+|------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Stripe webhook arrives out of order (update before create) | Use `stripe_subscription_id` as idempotency key. Always fetch latest subscription state from Stripe on ambiguous events.                                                            |
+| User closes Stripe Checkout without completing             | No action needed — no webhook fired, plan unchanged.                                                                                                                                |
+| User downgrades from Growth (3 repos) to Starter (1 repo)  | Existing repos not disconnected. User sees warning banner: "Your plan supports 1 repo — disconnect 2 repos to comply." Enforce limit only on connecting new repos, not on existing. |
+| User's card declines mid-subscription (dunning)            | Stripe handles retry logic. After dunning period ends, `subscription.deleted` fires → downgrade to free. User emailed by Stripe (not our system).                                   |
+| Two Stripe webhooks for same event (duplicate delivery)    | All Stripe webhook handlers are idempotent. Use `stripe_subscription_id` + `status` to detect and skip duplicate state updates.                                                     |
+| Cron job fails to reset monthly quotas                     | Lazy reset fallback in publish endpoint catches this (checks `publish_quota_reset_at < now()`).                                                                                     |
 
 ### Auth & Workspaces
 
-| Case | Handling |
-|---|---|
-| Slug collision on workspace creation | Validated at form level (debounced uniqueness check). Server also returns 409 with `SLUG_TAKEN`. Client retries with suggested alternative (slug + random suffix). |
-| User tries to change slug after first publish | Blocked in UI (field disabled) and on server (returns 400 `SLUG_LOCKED`). Message: "Slug cannot be changed after publishing — it would break existing links." |
-| GitHub App uninstalled (user removes it from GitHub settings) | GitHub sends `installation.deleted` webhook (if we register for it). Set all repos for that installation to `is_active=false`. Dashboard shows reconnect prompt. In MVP, handle gracefully — new webhooks won't fire, drafts stop appearing. |
-| User deletes workspace | Cascade deletes: repos, entries, subscribers, settings, email_sends. Stripe subscription must be cancelled first (or auto-cancelled via server). Stripe customer NOT deleted (preserve billing history). |
-| User signs up with different GitHub account than the one used to install the GitHub App | GitHub App installation is per-account/org. The installation belongs to the GitHub user/org, not to Mergecast's user. On repo connect, we verify the authenticated user has access to the installation via GitHub API before accepting. |
+| Case                                                                                    | Handling                                                                                                                                                                                                                                     |
+|-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Slug collision on workspace creation                                                    | Validated at form level (debounced uniqueness check). Server also returns 409 with `SLUG_TAKEN`. Client retries with suggested alternative (slug + random suffix).                                                                           |
+| User tries to change slug after first publish                                           | Blocked in UI (field disabled) and on server (returns 400 `SLUG_LOCKED`). Message: "Slug cannot be changed after publishing — it would break existing links."                                                                                |
+| GitHub App uninstalled (user removes it from GitHub settings)                           | GitHub sends `installation.deleted` webhook (if we register for it). Set all repos for that installation to `is_active=false`. Dashboard shows reconnect prompt. In MVP, handle gracefully — new webhooks won't fire, drafts stop appearing. |
+| User deletes workspace                                                                  | Cascade deletes: repos, entries, subscribers, settings, email_sends. Stripe subscription must be cancelled first (or auto-cancelled via server). Stripe customer NOT deleted (preserve billing history).                                     |
+| User signs up with different GitHub account than the one used to install the GitHub App | GitHub App installation is per-account/org. The installation belongs to the GitHub user/org, not to Mergecast's user. On repo connect, we verify the authenticated user has access to the installation via GitHub API before accepting.      |
 
 ### Custom Domain (Starter+)
 
-| Case | Handling |
-|---|---|
-| Domain already in use by another workspace | `custom_domain` has UNIQUE constraint. Return 409. |
-| CNAME not yet propagated when verify is clicked | Verification fails gracefully with message: "CNAME not detected yet. DNS changes can take up to 48 hours." |
-| Domain verification passes but Vercel domain assignment fails | Log error, mark `custom_domain_verified=false`, surface error to user. |
+| Case                                                          | Handling                                                                                                   |
+|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| Domain already in use by another workspace                    | `custom_domain` has UNIQUE constraint. Return 409.                                                         |
+| CNAME not yet propagated when verify is clicked               | Verification fails gracefully with message: "CNAME not detected yet. DNS changes can take up to 48 hours." |
+| Domain verification passes but Vercel domain assignment fails | Log error, mark `custom_domain_verified=false`, surface error to user.                                     |
 
 ### Widget
 
-| Case | Handling |
-|---|---|
-| Widget JS fails to load (e.g. ad blocker) | Script tag loads asynchronously — no impact on host page. No errors thrown. Widget simply doesn't appear. |
-| Workspace has no published entries | Widget renders button but drawer shows empty state: "No updates yet." |
-| Widget script embedded on a page with CSP restrictions | Documented limitation. Widget requires `script-src` to include Mergecast's domain. Not solvable in MVP. |
+| Case                                                   | Handling                                                                                                  |
+|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| Widget JS fails to load (e.g. ad blocker)              | Script tag loads asynchronously — no impact on host page. No errors thrown. Widget simply doesn't appear. |
+| Workspace has no published entries                     | Widget renders button but drawer shows empty state: "No updates yet."                                     |
+| Widget script embedded on a page with CSP restrictions | Documented limitation. Widget requires `script-src` to include Mergecast's domain. Not solvable in MVP.   |

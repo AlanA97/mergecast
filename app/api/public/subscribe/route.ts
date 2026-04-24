@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 const SubscribeSchema = z.object({
-  workspace_id: z.string().uuid(),
-  email: z.string().email(),
+  workspace_id: z.uuid(),
+  email: z.email(),
 })
 
 export async function POST(request: Request) {

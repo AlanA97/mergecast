@@ -2,25 +2,24 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PLAN_LIMITS } from '@/lib/plans'
 
 const PLAN_DETAILS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '$29/mo',
+    price: '$19/mo',
     features: ['Unlimited publishes', '1,000 subscribers', '1 repo'],
   },
   {
     id: 'growth',
     name: 'Growth',
-    price: '$59/mo',
+    price: '$49/mo',
     features: ['Unlimited publishes', '10,000 subscribers', '3 repos'],
   },
   {
     id: 'scale',
     name: 'Scale',
-    price: '$99/mo',
+    price: '$79/mo',
     features: ['Unlimited publishes', '50,000 subscribers', 'Unlimited repos'],
   },
 ]
@@ -44,7 +43,7 @@ export default function BillingPage() {
       body: JSON.stringify({ workspace_id: workspace.id, price_id: priceId }),
     })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
+    if (data.url) window.location.assign(data.url)
     setLoading(false)
   }
 
@@ -57,7 +56,7 @@ export default function BillingPage() {
       body: JSON.stringify({ workspace_id: workspace.id }),
     })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
+    if (data.url) window.location.assign(data.url)
     setLoading(false)
   }
 

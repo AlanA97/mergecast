@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import Link from "next/link";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -45,7 +46,7 @@ export default async function SignupPage() {
         </form>
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <a href="/login" className="underline">Sign in</a>
+          <Link href="/login" className="underline">Sign in</Link>
         </p>
         <p className="text-center text-xs text-muted-foreground">
           By signing up you agree to our Terms of Service and Privacy Policy.

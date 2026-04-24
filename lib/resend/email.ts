@@ -115,7 +115,7 @@ function buildEmailHtml(input: {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/\n/g, '<br>')
-  return `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#111;">
+  return `<!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#111;">
     <h1 style="font-size:20px;font-weight:600;margin-bottom:8px;">${input.entryTitle}</h1>
     <p style="color:#555;font-size:14px;margin-bottom:16px;">${escapedContent}</p>
     <a href="${input.changelogUrl}" style="color:#000;font-size:14px;">View on changelog →</a>

@@ -1800,14 +1800,14 @@ const PRICING = [
   },
   {
     name: 'Starter',
-    price: '$29',
+    price: '$19',
     features: ['1 repo', 'Unlimited publishes', '1,000 subscribers', 'Custom domain'],
     cta: 'Get started',
     highlighted: true,
   },
   {
     name: 'Growth',
-    price: '$59',
+    price: '$49',
     features: ['3 repos', 'Unlimited publishes', '10,000 subscribers', 'Remove Mergecast badge'],
     cta: 'Get started',
     highlighted: false,

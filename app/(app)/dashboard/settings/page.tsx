@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { X, Lock } from 'lucide-react'
+import Link from "next/link";
 
 interface Workspace {
   id: string
@@ -180,7 +181,7 @@ export default function SettingsPage() {
           </div>
           {!canToggleBadge && (
             <p className="text-xs text-muted-foreground">
-              <a href="/dashboard/billing" className="underline">Upgrade to Growth</a> to remove the badge.
+              <Link href="/dashboard/billing" className="underline">Upgrade to Growth</Link> to remove the badge.
             </p>
           )}
         </div>

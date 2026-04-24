@@ -16,7 +16,7 @@ export function getGitHubApp(): App {
 
 export async function getInstallationOctokit(installationId: number): Promise<Octokit> {
   const app = getGitHubApp()
-  return app.getInstallationOctokit(installationId) as unknown as Octokit
+  return await app.getInstallationOctokit(installationId) as unknown as Octokit
 }
 
 export async function registerWebhookForRepo(
