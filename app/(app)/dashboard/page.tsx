@@ -3,6 +3,7 @@ import { EntryCard } from '@/components/dashboard/entry-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
 import { ExternalLink, AlertTriangle } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 async function getWorkspaceForUser(userId: string) {
   const supabase = await createSupabaseServerClient()
@@ -39,6 +40,9 @@ export default async function DashboardPage({
     data: { user },
   } = await supabase.auth.getUser()
   const workspace = await getWorkspaceForUser(user!.id)
+  if (!workspace) {
+    redirect('/onboarding')
+  }
   const { tab } = await searchParams
   const activeTab = tab ?? 'all'
 
