@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -8,7 +8,7 @@ export function SubscribeForm({ workspaceId }: { workspaceId: string }) {
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
-  async function subscribe(e: React.FormEvent) {
+  async function subscribe(e: FormEvent) {
     e.preventDefault()
     setState('loading')
     const res = await fetch('/api/public/subscribe', {
