@@ -1,6 +1,6 @@
 # Mergecast
 
-**Mergecast** is an open-source changelog platform that turns merged GitHub pull requests into polished product updates — automatically. It generates AI-written release notes, publishes them to a hosted changelog page, notifies email subscribers, and surfaces updates via an embeddable widget you can drop into any website.
+**Mergecast** is an open-source changelog platform that turns merged GitHub pull requests into polished product updates - automatically. It generates AI-written release notes, publishes them to a hosted changelog page, notifies email subscribers, and surfaces updates via an embeddable widget you can drop into any website.
 
 ---
 
@@ -10,7 +10,6 @@
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Installation](#installation)
-- [Configuration](#configuration)
 - [Usage](#usage)
 - [Development](#development)
 - [Deployment](#deployment)
@@ -21,14 +20,14 @@
 
 ## Features
 
-- **GitHub integration** — Install the GitHub App, connect a repo, and Mergecast listens for merged PRs automatically
-- **AI-generated drafts** — GPT-4o turns PR titles and descriptions into user-facing release notes
-- **PR noise filtering** — Ignore rules suppress CI runs, dependency bumps, and internal commits
-- **Embeddable widget** — A single `<script>` tag adds a changelog drawer to any website, no framework required
-- **Email subscribers** — Double opt-in, per-workspace subscriber lists with auto-send on publish
-- **RSS feed** — Every changelog has a `/rss.xml` feed at `/<workspace-slug>/rss.xml`
-- **Plan-gated limits** — Free tier includes 3 publishes/month; paid plans unlock unlimited publishes, more subscribers, and badge removal
-- **Admin dashboard** — Workspace count, plan breakdown, and MRR estimate at `/admin`
+- **GitHub integration** - Install the GitHub App, connect a repo, and Mergecast listens for merged PRs automatically
+- **AI-generated drafts** - GPT-4o turns PR titles and descriptions into user-facing release notes
+- **PR noise filtering** - Ignore rules suppress CI runs, dependency bumps, and internal commits
+- **Embeddable widget** - A single `<script>` tag adds a changelog drawer to any website, no framework required
+- **Email subscribers** - Double opt-in, per-workspace subscriber lists with auto-send on publish
+- **RSS feed** - Every changelog has a `/rss.xml` feed at `/<workspace-slug>/rss.xml`
+- **Plan-gated limits** - Free tier includes 3 publishes/month; paid plans unlock unlimited publishes, more subscribers, and badge removal
+- **Admin dashboard** - Workspace count, plan breakdown, and MRR estimate at `/admin`
 
 ---
 
@@ -111,10 +110,10 @@ mergecast/
 
 3. **Set up environment variables**
 
-   Copy the example below into a `.env.local` file in the project root and fill in your values (see [Configuration](#configuration)):
+   Copy the `.env.example` into a `.env.local` file in the project root and fill in your values:
 
    ```bash
-   cp .env.example .env.local   # if the file exists, otherwise create it manually
+   cp .env.example .env.local
    ```
 
 4. **Apply database migrations**
@@ -137,47 +136,6 @@ mergecast/
    The app will be available at [http://localhost:3000](http://localhost:3000).
 
 ---
-
-## Configuration
-
-All configuration is done via environment variables. Create a `.env.local` file at the project root:
-
-```env
-# ── App ──────────────────────────────────────────────────────────────────────
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# ── Supabase ─────────────────────────────────────────────────────────────────
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon-key>
-SUPABASE_SECRET_KEY=<service-role-key>
-
-# ── GitHub App ───────────────────────────────────────────────────────────────
-# Create a GitHub App at https://github.com/settings/apps/new
-# Required permissions: Pull requests (read), Webhooks (write)
-# Required event: Pull request
-NEXT_PUBLIC_GITHUB_APP_SLUG=<github-app-slug>
-GITHUB_APP_ID=<numeric-app-id>
-GITHUB_APP_PRIVATE_KEY=<base64-encoded-pem>   # base64 -i private-key.pem
-GITHUB_APP_WEBHOOK_SECRET=<random-secret>
-
-# ── OpenAI ───────────────────────────────────────────────────────────────────
-OPENAI_API_KEY=sk-...
-
-# ── Stripe ───────────────────────────────────────────────────────────────────
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_STARTER_MONTHLY=price_...   # $19/mo
-STRIPE_PRICE_GROWTH_MONTHLY=price_...    # $49/mo
-STRIPE_PRICE_SCALE_MONTHLY=price_...     # $79/mo
-
-# ── Email (Resend) ────────────────────────────────────────────────────────────
-RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=noreply@mergecast.co
-
-# ── Cron ─────────────────────────────────────────────────────────────────────
-# A secret used to authenticate the monthly quota-reset cron job
-CRON_SECRET=<random-string>
-```
 
 ### Plans
 
@@ -210,7 +168,7 @@ The widget renders a toggleable changelog drawer in the bottom-right corner. You
 ### Connecting a GitHub Repository
 
 1. Go to **Settings** in the dashboard
-2. Click **Install GitHub App** — this redirects to GitHub to grant access
+2. Click **Install GitHub App** - this redirects to GitHub to grant access
 3. Select the repository you want to monitor
 4. Mergecast will create a draft changelog entry for every merged pull request
 
@@ -218,15 +176,15 @@ The widget renders a toggleable changelog drawer in the bottom-right corner. You
 
 Prevent noise entries by adding ignore rules on the Settings page. Rules can match:
 
-- **Title prefix** — e.g. `chore:`, `deps:`, `ci:`
-- **Title contains** — e.g. `bump`, `dependabot`
-- **Label** — e.g. `internal`, `skip-changelog`
+- **Title prefix** - e.g. `chore:`, `deps:`, `ci:`
+- **Title contains** - e.g. `bump`, `dependabot`
+- **Label** - e.g. `internal`, `skip-changelog`
 
 ### Publishing an Entry
 
 1. Open an auto-generated draft in the dashboard
 2. Review and edit the AI-generated content
-3. Click **Publish** — this posts the entry to your public changelog and emails all confirmed subscribers
+3. Click **Publish** - this posts the entry to your public changelog and emails all confirmed subscribers
 
 ### Subscribing to a Changelog
 
@@ -319,7 +277,7 @@ The recommended platform is [Vercel](https://vercel.com). Any platform that supp
 
 **Widget not loading**
 - Confirm the `data-workspace` attribute matches your workspace slug exactly
-- Check the browser console for network errors — the widget fetches `/api/public/changelog/<slug>`
+- Check the browser console for network errors - the widget fetches `/api/public/changelog/<slug>`
 - Ensure `NEXT_PUBLIC_APP_URL` is set correctly in production
 
 **GitHub webhook not triggering drafts**
@@ -330,7 +288,7 @@ The recommended platform is [Vercel](https://vercel.com). Any platform that supp
 
 **AI draft not generated**
 - Confirm `OPENAI_API_KEY` is valid and has access to `gpt-4o`
-- Check server logs — OpenAI errors are logged but do not block entry creation
+- Check server logs - OpenAI errors are logged but do not block entry creation
 
 **Emails not sending**
 - Verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
