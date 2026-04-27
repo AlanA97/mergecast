@@ -305,4 +305,8 @@ The recommended platform is [Vercel](https://vercel.com). Any platform that supp
 
 ## License
 
-MIT
+This project is licensed under the [Business Source License 1.1](LICENSE) (BUSL-1.1).
+
+Source code is available for inspection, contribution, and personal/internal use. Commercial use as a competing hosted service is restricted until April 27, 2030, after which the project converts to the MIT License.
+
+See the [LICENSE](LICENSE) file for full terms.
