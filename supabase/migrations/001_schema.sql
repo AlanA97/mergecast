@@ -122,8 +122,10 @@ CREATE TABLE email_sends (
 CREATE TABLE widget_settings (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id UUID        NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE UNIQUE,
-  position     TEXT        NOT NULL DEFAULT 'bottom-right',
-  theme        TEXT        NOT NULL DEFAULT 'light',
+  position     TEXT        NOT NULL DEFAULT 'bottom-right'
+                             CHECK (position IN ('bottom-right', 'bottom-left', 'top-right', 'top-left')),
+  theme        TEXT        NOT NULL DEFAULT 'light'
+                             CHECK (theme IN ('light', 'dark')),
   accent_color TEXT        NOT NULL DEFAULT '#000000'
                              CHECK (accent_color ~ '^#[0-9a-fA-F]{6}$'),
   button_label TEXT        NOT NULL DEFAULT 'What''s new',
