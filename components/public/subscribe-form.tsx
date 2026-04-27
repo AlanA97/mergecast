@@ -1,5 +1,6 @@
 'use client'
 import {useState, ChangeEvent} from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -53,6 +54,10 @@ export function SubscribeForm({ workspaceId }: { workspaceId: string }) {
         </Button>
       </form>
       {state === 'error' && <p className="text-destructive text-xs mt-1">{errorMsg}</p>}
+      <p className="text-xs text-muted-foreground mt-2">
+        We&apos;ll only email you when new updates are published.{' '}
+        <Link href="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
+      </p>
     </div>
   )
 }
