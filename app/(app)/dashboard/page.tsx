@@ -57,6 +57,7 @@ export default async function DashboardPage({
 
   // Approaching-limit banner logic
   const isFree = workspace.plan === 'free'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const publishCount: number = (workspace as any).publish_count_this_month ?? 0
   const FREE_LIMIT = 3
   const showYellowBanner = isFree && publishCount === FREE_LIMIT - 1  // 2/3 used

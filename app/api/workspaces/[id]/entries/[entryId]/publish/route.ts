@@ -5,6 +5,15 @@ import { NextResponse } from 'next/server'
 
 type Params = { params: Promise<{ id: string; entryId: string }> }
 
+interface WorkspaceForPublish {
+  id: string
+  plan: string
+  publish_count_this_month: number
+  publish_quota_reset_at: string
+  slug: string
+  name: string
+}
+
 export async function POST(_req: Request, { params }: Params) {
   const { id: workspaceId, entryId } = await params
   const supabase = await createSupabaseServerClient()
@@ -19,7 +28,7 @@ export async function POST(_req: Request, { params }: Params) {
     .from('workspaces')
     .select('id, plan, publish_count_this_month, publish_quota_reset_at, slug, name')
     .eq('id', workspaceId)
-    .single()
+    .single() as { data: WorkspaceForPublish | null }
   if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const { data: membership } = await service
@@ -30,8 +39,7 @@ export async function POST(_req: Request, { params }: Params) {
     .single()
   if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quota = await checkPublishQuota(workspace as any, workspaceId)
+  const quota = await checkPublishQuota(workspace, workspaceId)
   if (!quota.allowed) {
     return NextResponse.json({ error: quota.reason }, { status: 403 })
   }
@@ -63,8 +71,8 @@ export async function POST(_req: Request, { params }: Params) {
   // Fire-and-forget email send
   sendPublishEmail({
     workspaceId,
-    workspaceName: (workspace as any).name,
-    workspaceSlug: (workspace as any).slug,
+    workspaceName: workspace.name,
+    workspaceSlug: workspace.slug,
     entry: published,
   }).catch(console.error)
 

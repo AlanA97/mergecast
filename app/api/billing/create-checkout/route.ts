@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     .from('workspaces')
     .select('stripe_customer_id, name')
     .eq('id', workspace_id)
-    .single()
+    .single() as { data: { stripe_customer_id: string | null; name: string } | null }
   if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const stripe = getStripeClient()
@@ -44,8 +44,8 @@ export async function POST(request: Request) {
     mode: 'subscription',
     payment_method_types: ['card'],
     line_items: [{ price: price_id, quantity: 1 }],
-    customer: (workspace as any).stripe_customer_id ?? undefined,
-    customer_email: (workspace as any).stripe_customer_id ? undefined : user.email,
+    customer: workspace.stripe_customer_id ?? undefined,
+    customer_email: workspace.stripe_customer_id ? undefined : user.email,
     metadata: { workspace_id },
     success_url: `${appUrl}/dashboard/billing?success=true`,
     cancel_url: `${appUrl}/dashboard/billing`,

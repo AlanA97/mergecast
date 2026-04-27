@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
+interface WorkspaceSummary { id: string; plan: string }
+interface BillingPlan { id: string; priceId: string }
+
 const PLAN_DETAILS = [
   {
     id: 'starter',
@@ -25,8 +28,8 @@ const PLAN_DETAILS = [
 ]
 
 export default function BillingPage() {
-  const [workspace, setWorkspace] = useState<any>(null)
-  const [plans, setPlans] = useState<any[]>([])
+  const [workspace, setWorkspace] = useState<WorkspaceSummary | null>(null)
+  const [plans, setPlans] = useState<BillingPlan[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -81,7 +84,7 @@ export default function BillingPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {PLAN_DETAILS.map(plan => {
-          const apiPlan = plans.find((p: any) => p.id === plan.id)
+          const apiPlan = plans.find(p => p.id === plan.id)
           const isCurrentPlan = plan.id === currentPlan
           return (
             <div

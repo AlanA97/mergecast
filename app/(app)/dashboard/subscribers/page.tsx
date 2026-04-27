@@ -13,6 +13,7 @@ export default async function SubscribersPage() {
     .limit(1)
     .single()
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const workspaceId = (membership?.workspaces as any)?.id
 
   const { data: subscribers, count } = await supabase

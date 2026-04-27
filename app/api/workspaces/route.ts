@@ -69,8 +69,8 @@ export async function GET() {
   const { data: memberships } = await supabase
     .from('workspace_members')
     .select('workspace_id, role, workspaces(*)')
-    .eq('user_id', user.id)
+    .eq('user_id', user.id) as { data: Array<{ workspace_id: string; role: string; workspaces: Record<string, unknown> }> | null }
 
-  const workspaces = (memberships ?? []).map((m: any) => ({ ...m.workspaces, role: m.role }))
+  const workspaces = (memberships ?? []).map(m => ({ ...m.workspaces, role: m.role }))
   return NextResponse.json({ workspaces })
 }

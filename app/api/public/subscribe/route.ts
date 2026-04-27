@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     .from('workspaces')
     .select('plan, name, slug')
     .eq('id', workspace_id)
-    .single()
+    .single() as { data: { plan: string; name: string; slug: string } | null }
   if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const { count } = await service
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     .eq('confirmed', true)
     .is('unsubscribed_at', null)
 
-  const limit = PLAN_LIMITS[(workspace as any).plan as keyof typeof PLAN_LIMITS].subscribers
+  const limit = PLAN_LIMITS[workspace.plan as keyof typeof PLAN_LIMITS].subscribers
   if ((count ?? 0) >= limit) {
     return NextResponse.json({ error: 'SUBSCRIBER_LIMIT_REACHED' }, { status: 403 })
   }
@@ -47,8 +47,8 @@ export async function POST(request: Request) {
     if (!existing.confirmed) {
       await sendConfirmationEmail({
         email,
-        workspaceName: (workspace as any).name,
-        workspaceSlug: (workspace as any).slug,
+        workspaceName: workspace.name,
+        workspaceSlug: workspace.slug,
         token: existing.confirmation_token!,
       })
     }
@@ -64,8 +64,8 @@ export async function POST(request: Request) {
   if (subscriber) {
     await sendConfirmationEmail({
       email,
-      workspaceName: (workspace as any).name,
-      workspaceSlug: (workspace as any).slug,
+      workspaceName: workspace.name,
+      workspaceSlug: workspace.slug,
       token: subscriber.confirmation_token!,
     })
   }

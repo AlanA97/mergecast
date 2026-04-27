@@ -37,7 +37,7 @@ export async function POST(
     .from('workspaces')
     .select('plan')
     .eq('id', workspaceId)
-    .single()
+    .single() as { data: { plan: string } | null }
   if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   // Check repo limit
@@ -47,7 +47,7 @@ export async function POST(
     .eq('workspace_id', workspaceId)
     .eq('is_active', true)
 
-  const repoLimit = PLAN_LIMITS[(workspace as any).plan as keyof typeof PLAN_LIMITS].repos
+  const repoLimit = PLAN_LIMITS[workspace.plan as keyof typeof PLAN_LIMITS].repos
   if ((count ?? 0) >= repoLimit) {
     return NextResponse.json({ error: 'REPO_LIMIT_REACHED' }, { status: 403 })
   }
@@ -61,9 +61,8 @@ export async function POST(
   const webhookSecret = generateToken(32)
 
   // Register webhook via GitHub API
-  let webhookId: number
   try {
-    webhookId = await registerWebhookForRepo(github_installation_id, owner, repo, webhookSecret)
+    await registerWebhookForRepo(github_installation_id, owner, repo, webhookSecret)
   } catch {
     return NextResponse.json({ error: 'Failed to register GitHub webhook' }, { status: 502 })
   }

@@ -30,15 +30,15 @@ export async function POST(request: Request) {
     .from('workspaces')
     .select('stripe_customer_id')
     .eq('id', parsed.data.workspace_id)
-    .single()
+    .single() as { data: { stripe_customer_id: string | null } | null }
 
-  if (!(workspace as any)?.stripe_customer_id) {
+  if (!workspace?.stripe_customer_id) {
     return NextResponse.json({ error: 'No billing account found' }, { status: 400 })
   }
 
   const stripe = getStripeClient()
   const session = await stripe.billingPortal.sessions.create({
-    customer: (workspace as any).stripe_customer_id,
+    customer: workspace.stripe_customer_id,
     return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing`,
   })
 

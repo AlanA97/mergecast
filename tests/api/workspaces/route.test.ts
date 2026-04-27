@@ -101,7 +101,6 @@ describe('GET /api/workspaces', () => {
       auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: new Error('no user') }) },
     })
 
-    const req = new Request('http://localhost/api/workspaces')
     const res = await GET()
     expect(res.status).toBe(401)
   })
@@ -118,7 +117,6 @@ describe('GET /api/workspaces', () => {
       }),
     })
 
-    const req = new Request('http://localhost/api/workspaces')
     const res = await GET()
     expect(res.status).toBe(200)
     const body = await res.json()
