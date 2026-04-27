@@ -59,7 +59,7 @@ export function Sidebar({
           </Link>
         ))}
       </nav>
-      <div className="border-t p-2">
+      <div className="border-t p-2 space-y-1">
         <button
           onClick={signOut}
           className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -67,6 +67,10 @@ export function Sidebar({
           <LogOut className="h-4 w-4" />
           Sign out
         </button>
+        <div className="flex gap-3 px-3 py-1">
+          <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground">Privacy</Link>
+          <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground">Terms</Link>
+        </div>
       </div>
     </aside>
   )
