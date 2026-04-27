@@ -49,7 +49,10 @@ export default async function SignupPage() {
           <Link href="/login" className="underline">Sign in</Link>
         </p>
         <p className="text-center text-xs text-muted-foreground">
-          By signing up you agree to our Terms of Service and Privacy Policy.
+          By signing up you agree to our{' '}
+          <Link href="/terms" className="underline">Terms of Service</Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="underline">Privacy Policy</Link>.
         </p>
       </div>
     </div>
