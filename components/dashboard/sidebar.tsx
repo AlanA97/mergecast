@@ -16,8 +16,10 @@ const NAV = [
 
 export function Sidebar({
   workspace,
+  onClose,
 }: {
   workspace: { name: string; slug: string; plan: string }
+  onClose?: () => void
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -47,6 +49,7 @@ export function Sidebar({
           <Link
             key={href}
             href={href}
+            onClick={onClose}
             className={cn(
               'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
               pathname === href
@@ -61,7 +64,7 @@ export function Sidebar({
       </nav>
       <div className="border-t p-2 space-y-1">
         <button
-          onClick={signOut}
+          onClick={() => { signOut(); onClose?.() }}
           className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <LogOut className="h-4 w-4" />

@@ -67,7 +67,7 @@ export default function BillingPage() {
   const isOnPaidPlan = currentPlan !== 'free'
 
   return (
-    <div className="p-6 max-w-3xl space-y-8">
+    <div className="p-4 md:p-6 max-w-3xl space-y-8">
       <div>
         <h1 className="text-xl font-semibold">Billing</h1>
         <p className="text-sm text-muted-foreground mt-1">

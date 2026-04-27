@@ -64,10 +64,10 @@ export default async function DashboardPage({
   const showRedBanner = isFree && publishCount >= FREE_LIMIT           // 3/3 used
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-4 md:p-6 max-w-3xl">
       {/* Approaching-limit banners */}
       {showRedBanner && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm">
           <div className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>Monthly publish limit reached.</span>
@@ -78,7 +78,7 @@ export default async function DashboardPage({
         </div>
       )}
       {showYellowBanner && !showRedBanner && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-4 py-3 text-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-4 py-3 text-sm">
           <span className="text-yellow-700 dark:text-yellow-400">
             1 publish left this month on the free plan.
           </span>
@@ -87,7 +87,7 @@ export default async function DashboardPage({
           </Link>
         </div>
       )}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-semibold">Entries</h1>
           <p className="text-sm text-muted-foreground mt-0.5">

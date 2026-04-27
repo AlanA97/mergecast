@@ -27,7 +27,7 @@ export default async function SubscribersPage() {
   const confirmed = (subscribers ?? []).filter(s => s.confirmed).length
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <div className="p-4 md:p-6 max-w-3xl space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Subscribers</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
@@ -42,8 +42,8 @@ export default async function SubscribersPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-lg border overflow-hidden overflow-x-auto">
+          <table className="w-full min-w-[480px] text-sm">
             <thead className="border-b bg-muted/50">
               <tr>
                 {['Email', 'Status', 'Subscribed'].map(h => (

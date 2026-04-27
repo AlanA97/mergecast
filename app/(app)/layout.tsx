@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/dashboard/sidebar'
+import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import React from "react";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -22,9 +22,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const workspace = (memberships[0].workspaces as any)
 
   return (
-    <div className="flex h-screen">
-      <Sidebar workspace={workspace} />
-      <main className="flex-1 overflow-auto bg-muted/10">{children}</main>
-    </div>
+    <DashboardShell workspace={workspace}>
+      {children}
+    </DashboardShell>
   )
 }

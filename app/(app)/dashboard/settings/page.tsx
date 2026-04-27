@@ -122,12 +122,12 @@ export default function SettingsPage() {
     setSavingBadge(false)
   }
 
-  if (!workspace) return <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+  if (!workspace) return <div className="p-4 text-sm text-muted-foreground">Loading…</div>
 
   const canToggleBadge = ['growth', 'scale'].includes(workspace.plan.toLowerCase())
 
   return (
-    <div className="p-6 max-w-2xl space-y-8">
+    <div className="p-4 md:p-6 max-w-2xl space-y-8">
       <h1 className="text-xl font-semibold">Settings</h1>
 
       {/* Workspace */}

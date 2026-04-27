@@ -91,8 +91,8 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
   }
 
   return (
-    <div className="flex gap-6 p-6 max-w-5xl">
-      <div className="flex-1 space-y-4">
+    <div className="flex flex-col-reverse gap-6 p-4 md:flex-row md:p-6 max-w-5xl">
+      <div className="flex-1 min-w-0 space-y-4">
         <div className="space-y-2">
           <Label>Title</Label>
           <Input value={title} onChange={e => setTitle(e.target.value)} />
@@ -112,7 +112,7 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
           />
         </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
-        <div className="flex items-center gap-2 pt-2">
+        <div className="flex flex-wrap items-center gap-2 pt-2">
           <Button variant="outline" onClick={archive}>
             Archive
           </Button>
@@ -151,7 +151,7 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
         )}
       </div>
 
-      <div className="w-72 shrink-0 space-y-4">
+      <div className="w-full md:w-72 md:shrink-0 space-y-4">
         <div className="rounded-lg border p-4 space-y-3 text-sm">
           <p className="font-medium">Source PR</p>
           {entry.pr_url && (
