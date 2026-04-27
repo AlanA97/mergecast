@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { GitBranch, Zap, Mail, Code2, CheckCircle } from 'lucide-react'
 
 // Features ordered by defensibility: widget first (unique), then the rest
@@ -51,10 +53,7 @@ export default function LandingPage() {
           <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
             Sign in
           </Link>
-          <Link
-            href="/signup"
-            className="inline-flex items-center justify-center rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-brand-foreground hover:opacity-90 transition-opacity"
-          >
+          <Link href="/signup" className={cn(buttonVariants({ variant: 'brand' }), 'rounded-md px-3 py-1.5')}>
             Start free
           </Link>
         </div>
@@ -74,10 +73,7 @@ export default function LandingPage() {
               from your GitHub PRs automatically, then emails your subscribers when you publish.
             </p>
             <div className="flex items-center gap-3">
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground hover:opacity-90 transition-opacity"
-              >
+              <Link href="/signup" className={cn(buttonVariants({ variant: 'brand' }), 'rounded-md px-5 py-2.5')}>
                 Start for free
               </Link>
               <Link
@@ -205,11 +201,12 @@ export default function LandingPage() {
               </ul>
               <Link
                 href="/signup"
-                className={`flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors w-full ${
+                className={cn(
+                  'flex w-full rounded-md px-4 py-2',
                   highlighted
-                    ? 'bg-brand text-brand-foreground hover:opacity-90'
-                    : 'border border-input hover:bg-accent hover:text-accent-foreground'
-                }`}
+                    ? buttonVariants({ variant: 'brand' })
+                    : buttonVariants({ variant: 'outline' })
+                )}
               >
                 {cta}
               </Link>

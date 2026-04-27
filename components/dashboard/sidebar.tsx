@@ -67,9 +67,9 @@ export function Sidebar({
           <LogOut className="h-4 w-4" />
           Sign out
         </button>
-        <div className="flex gap-3 px-3 py-1">
-          <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground">Privacy</Link>
-          <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground">Terms</Link>
+        <div className="flex gap-3 px-3 py-2">
+          <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
+          <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
         </div>
       </div>
     </aside>
