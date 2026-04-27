@@ -47,7 +47,7 @@ export async function PATCH(
 
   const { data: workspace, error } = await service
     .from('workspaces')
-    .update({ ...parsed.data, updated_at: new Date().toISOString() })
+    .update(parsed.data)
     .eq('id', id)
     .select()
     .single()
