@@ -1,9 +1,23 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
+
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
+}
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    console.error('[reset-quotas] CRON_SECRET env var is not set')
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const authHeader = request.headers.get('authorization') ?? ''
+  if (!safeCompare(authHeader, `Bearer ${cronSecret}`)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
