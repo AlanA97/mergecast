@@ -217,8 +217,10 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="px-6 py-8 border-t">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
-          <span>Mergecast</span>
+          <span>© 2026 Mergecast</span>
           <div className="flex gap-4">
+            <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground">Terms</Link>
             <Link href="/login" className="hover:text-foreground">Sign in</Link>
             <Link href="/signup" className="hover:text-foreground">Sign up</Link>
           </div>
