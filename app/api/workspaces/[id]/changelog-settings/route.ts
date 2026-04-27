@@ -19,6 +19,15 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const service = createSupabaseServiceClient()
+
+  const { data: membership } = await service
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', id)
+    .eq('user_id', user.id)
+    .single()
+  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const { data: settings } = await service
     .from('changelog_settings')
     .select('*')
