@@ -59,4 +59,32 @@ describe('GET /api/auth/callback', () => {
     expect(res.status).toBe(307)
     expect(res.headers.get('location')).toBe('http://localhost:3000/login?error=auth_failed')
   })
+
+  // Open redirect prevention — added when we fixed the next param validation
+  it('rejects protocol-relative next param (//evil.com) and falls back to /dashboard', async () => {
+    ;(createSupabaseServerClient as any).mockResolvedValue({
+      auth: { exchangeCodeForSession: vi.fn().mockResolvedValue({ error: null }) },
+    })
+    const req = makeRequest('http://localhost:3000/api/auth/callback?code=abc&next=//evil.com/steal')
+    const res = await GET(req)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/dashboard')
+  })
+
+  it('rejects absolute http URL in next param and falls back to /dashboard', async () => {
+    ;(createSupabaseServerClient as any).mockResolvedValue({
+      auth: { exchangeCodeForSession: vi.fn().mockResolvedValue({ error: null }) },
+    })
+    const req = makeRequest('http://localhost:3000/api/auth/callback?code=abc&next=http://evil.com')
+    const res = await GET(req)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/dashboard')
+  })
+
+  it('allows a valid deep relative path in next param', async () => {
+    ;(createSupabaseServerClient as any).mockResolvedValue({
+      auth: { exchangeCodeForSession: vi.fn().mockResolvedValue({ error: null }) },
+    })
+    const req = makeRequest('http://localhost:3000/api/auth/callback?code=abc&next=/dashboard/settings')
+    const res = await GET(req)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/dashboard/settings')
+  })
 })
