@@ -14,7 +14,7 @@ export async function handleCheckoutCompleted(
   const priceId = subscription.items.data[0]?.price.id ?? ''
   const plan = getPlanFromPriceId(priceId)
 
-  await supabase
+  const { error } = await supabase
     .from('workspaces')
     .update({
       plan,
@@ -23,6 +23,8 @@ export async function handleCheckoutCompleted(
       stripe_price_id: priceId,
     })
     .eq('id', session.metadata.workspace_id)
+
+  if (error) throw new Error(`handleCheckoutCompleted DB update failed: ${error.message}`)
 }
 
 export async function handleSubscriptionUpserted(
@@ -32,7 +34,7 @@ export async function handleSubscriptionUpserted(
   const plan = getPlanFromPriceId(priceId)
   const supabase = createSupabaseServiceClient()
 
-  await supabase
+  const { error } = await supabase
     .from('workspaces')
     .update({
       plan,
@@ -40,6 +42,8 @@ export async function handleSubscriptionUpserted(
       stripe_price_id: priceId,
     })
     .eq('stripe_customer_id', subscription.customer as string)
+
+  if (error) throw new Error(`handleSubscriptionUpserted DB update failed: ${error.message}`)
 }
 
 export async function handleSubscriptionDeleted(
@@ -47,8 +51,10 @@ export async function handleSubscriptionDeleted(
 ): Promise<void> {
   const supabase = createSupabaseServiceClient()
 
-  await supabase
+  const { error } = await supabase
     .from('workspaces')
     .update({ plan: 'free', stripe_subscription_id: null, stripe_price_id: null })
     .eq('stripe_customer_id', subscription.customer as string)
+
+  if (error) throw new Error(`handleSubscriptionDeleted DB update failed: ${error.message}`)
 }
