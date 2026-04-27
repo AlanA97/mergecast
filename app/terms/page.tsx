@@ -8,12 +8,12 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-10">
           <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-            ← Back to Mergecast
+            <span aria-hidden="true">← </span>Back to Mergecast
           </Link>
           <h1 className="mt-6 text-3xl font-bold">Terms &amp; Conditions</h1>
           <p className="mt-2 text-sm text-muted-foreground">Effective date: April 27, 2026</p>
@@ -83,7 +83,7 @@ export default function TermsPage() {
             <p>
               You are responsible for maintaining the confidentiality of your account credentials and for
               all activities that occur under your account. Notify us immediately at{" "}
-              <a href="mailto:[contact@mergecast.co]" className="underline hover:text-foreground">
+              <a href="mailto:contact@mergecast.co" className="underline hover:text-foreground">
                 [contact@mergecast.co]
               </a>{" "}
               if you suspect unauthorized access to your account.
@@ -110,9 +110,8 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc list-inside space-y-1">
               <li><span className="font-medium text-foreground">Free:</span> Limited features at no cost.</li>
-              <li><span className="font-medium text-foreground">Starter:</span> $29/month</li>
-              <li><span className="font-medium text-foreground">Growth:</span> $59/month</li>
-              <li><span className="font-medium text-foreground">Scale:</span> $99/month</li>
+              <li><span className="font-medium text-foreground">Starter:</span> $19/month</li>
+              <li><span className="font-medium text-foreground">Growth:</span> $49/month</li>
             </ul>
             <p>
               Plan features and quotas (e.g., number of published entries per month) are described on the
@@ -366,7 +365,7 @@ export default function TermsPage() {
               <p>[Address]</p>
               <p>
                 Email:{" "}
-                <a href="mailto:[contact@mergecast.co]" className="underline hover:text-foreground">
+                <a href="mailto:contact@mergecast.co" className="underline hover:text-foreground">
                   [contact@mergecast.co]
                 </a>
               </p>
@@ -376,11 +375,11 @@ export default function TermsPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t text-sm text-muted-foreground flex gap-4">
+        <footer className="mt-16 pt-8 border-t text-sm text-muted-foreground flex gap-4">
           <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
           <Link href="/" className="hover:text-foreground">Back to Mergecast</Link>
-        </div>
+        </footer>
       </div>
-    </div>
+    </main>
   );
 }

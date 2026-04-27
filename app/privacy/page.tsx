@@ -8,12 +8,12 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-10">
           <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-            ← Back to Mergecast
+            <span aria-hidden="true">← </span>Back to Mergecast
           </Link>
           <h1 className="mt-6 text-3xl font-bold">Privacy Policy</h1>
           <p className="mt-2 text-sm text-muted-foreground">Last updated: April 27, 2026</p>
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
             <div className="rounded-md border px-4 py-3 space-y-1">
               <p>[Company Name]</p>
               <p>[Address]</p>
-              <p>Contact: <a href="mailto:[contact@mergecast.co]" className="underline hover:text-foreground">[contact@mergecast.co]</a></p>
+              <p>Contact: <a href="mailto:contact@mergecast.co" className="underline hover:text-foreground">[contact@mergecast.co]</a></p>
             </div>
           </section>
 
@@ -221,7 +221,7 @@ export default function PrivacyPage() {
             </ul>
             <p>
               To exercise any of these rights, contact us at{" "}
-              <a href="mailto:[contact@mergecast.co]" className="underline hover:text-foreground">
+              <a href="mailto:contact@mergecast.co" className="underline hover:text-foreground">
                 [contact@mergecast.co]
               </a>
               . We will respond to verified requests within 30 days.
@@ -244,7 +244,7 @@ export default function PrivacyPage() {
             <p>
               No method of transmission over the internet or electronic storage is 100% secure. If you
               become aware of a security vulnerability in our Service, please contact us immediately at{" "}
-              <a href="mailto:[contact@mergecast.co]" className="underline hover:text-foreground">
+              <a href="mailto:contact@mergecast.co" className="underline hover:text-foreground">
                 [contact@mergecast.co]
               </a>.
             </p>
@@ -258,7 +258,7 @@ export default function PrivacyPage() {
               States, where our third-party processors operate. Where data is transferred from the European
               Economic Area (EEA), we rely on appropriate safeguards such as Standard Contractual Clauses
               (SCCs) or adequacy decisions. For more information, contact us at{" "}
-              <a href="mailto:[contact@mergecast.co]" className="underline hover:text-foreground">
+              <a href="mailto:contact@mergecast.co" className="underline hover:text-foreground">
                 [contact@mergecast.co]
               </a>.
             </p>
@@ -301,7 +301,7 @@ export default function PrivacyPage() {
               <p>[Address]</p>
               <p>
                 Email:{" "}
-                <a href="mailto:[contact@mergecast.co]" className="underline hover:text-foreground">
+                <a href="mailto:contact@mergecast.co" className="underline hover:text-foreground">
                   [contact@mergecast.co]
                 </a>
               </p>
@@ -315,11 +315,11 @@ export default function PrivacyPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t text-sm text-muted-foreground flex gap-4">
+        <footer className="mt-16 pt-8 border-t text-sm text-muted-foreground flex gap-4">
           <Link href="/terms" className="hover:text-foreground">Terms &amp; Conditions</Link>
           <Link href="/" className="hover:text-foreground">Back to Mergecast</Link>
-        </div>
+        </footer>
       </div>
-    </div>
+    </main>
   );
 }
