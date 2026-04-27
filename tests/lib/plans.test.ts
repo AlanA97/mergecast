@@ -43,7 +43,7 @@ describe('getPlanFromPriceId', () => {
     expect(getPlanFromPriceId('price_scale')).toBe('scale')
   })
 
-  it('returns free for unknown price id', () => {
-    expect(getPlanFromPriceId('price_unknown')).toBe('free')
+  it('throws for unknown price id', () => {
+    expect(() => getPlanFromPriceId('price_unknown')).toThrow('Unknown Stripe price ID: price_unknown')
   })
 })

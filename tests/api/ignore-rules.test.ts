@@ -35,13 +35,17 @@ describe('GET /api/workspaces/[id]/ignore-rules', () => {
       auth: { getUser: async () => ({ data: { user: mockUser } }) },
     } as any)
     vi.mocked(createSupabaseServiceClient).mockReturnValue({
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            order: () => Promise.resolve({ data: mockRules }),
-          }),
-        }),
-      }),
+      from: (table: string) => {
+        if (table === 'workspace_members') {
+          return {
+            select: () => ({ eq: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { role: 'owner' } }) }) }) }),
+          }
+        }
+        // pr_ignore_rules
+        return {
+          select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: mockRules }) }) }),
+        }
+      },
     } as any)
     const res = await GET(new Request('http://localhost'), makeParams('ws-1'))
     expect(res.status).toBe(200)
