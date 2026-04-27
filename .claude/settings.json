@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": "echo '$CLAUDE_TOOL_INPUT' | grep -q '\\.env' && echo 'BLOCK: .env files must not be edited by Claude' && exit 1 || exit 0"
+      }]
+    }]
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": "npm run lint --quiet 2>&1 | head -20"
+      }]
+    }]
+  }
+}
