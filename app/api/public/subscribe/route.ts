@@ -1,6 +1,7 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
 import { sendConfirmationEmail } from '@/lib/resend/email'
 import { PLAN_LIMITS } from '@/lib/plans'
+import { createRateLimiter } from '@/lib/rate-limit'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -9,7 +10,15 @@ const SubscribeSchema = z.object({
   email: z.email(),
 })
 
+// 5 subscription attempts per IP per minute
+const limiter = createRateLimiter({ windowMs: 60_000, max: 5 })
+
 export async function POST(request: Request) {
+  const ip = (request.headers.get('x-forwarded-for') ?? 'unknown').split(',')[0].trim()
+  if (!limiter.check(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const body = await request.json()
   const parsed = SubscribeSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
