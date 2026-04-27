@@ -5,10 +5,21 @@ let _app: App | null = null
 
 export function getGitHubApp(): App {
   if (_app) return _app
+
+  const appId = process.env.GITHUB_APP_ID
+  const privateKeyB64 = process.env.GITHUB_APP_PRIVATE_KEY
+  const webhookSecret = process.env.GITHUB_APP_WEBHOOK_SECRET
+
+  if (!appId || !privateKeyB64 || !webhookSecret) {
+    throw new Error(
+      'Missing required GitHub App env vars: GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_WEBHOOK_SECRET'
+    )
+  }
+
   _app = new App({
-    appId: process.env.GITHUB_APP_ID!,
-    privateKey: Buffer.from(process.env.GITHUB_APP_PRIVATE_KEY!, 'base64').toString('utf-8'),
-    webhooks: { secret: process.env.GITHUB_APP_WEBHOOK_SECRET! },
+    appId,
+    privateKey: Buffer.from(privateKeyB64, 'base64').toString('utf-8'),
+    webhooks: { secret: webhookSecret },
     Octokit,
   })
   return _app
