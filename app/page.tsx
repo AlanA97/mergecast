@@ -35,6 +35,13 @@ const PRICING = [
     cta: 'Get started',
     highlighted: false,
   },
+  {
+    name: 'Scale',
+    price: '$79',
+    features: ['Unlimited repos', 'Unlimited publishes', '50,000 subscribers', 'Remove Mergecast badge'],
+    cta: 'Get started',
+    highlighted: false,
+  },
 ]
 
 export default function LandingPage() {
@@ -177,7 +184,7 @@ export default function LandingPage() {
       {/* Pricing */}
       <section id="pricing" className="px-6 py-16 max-w-5xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-10">Pricing</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {PRICING.map(({ name, price, features, cta, highlighted }) => (
             <div
               key={name}

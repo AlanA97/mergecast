@@ -12,14 +12,14 @@ const PLANS = [
   {
     id: 'growth',
     name: 'Growth',
-    price: 39,
+    price: 49,
     priceId: process.env.STRIPE_PRICE_GROWTH_MONTHLY,
     limits: PLAN_LIMITS.growth,
   },
   {
     id: 'scale',
     name: 'Scale',
-    price: 69,
+    price: 79,
     priceId: process.env.STRIPE_PRICE_SCALE_MONTHLY,
     limits: PLAN_LIMITS.scale,
   },
