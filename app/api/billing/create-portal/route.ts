@@ -17,6 +17,15 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
 
   const service = createSupabaseServiceClient()
+
+  const { data: membership } = await service
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', parsed.data.workspace_id)
+    .eq('user_id', user.id)
+    .single()
+  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const { data: workspace } = await service
     .from('workspaces')
     .select('stripe_customer_id')
