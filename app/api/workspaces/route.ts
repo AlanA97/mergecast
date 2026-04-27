@@ -2,14 +2,6 @@ import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/s
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-const DEFAULT_IGNORE_RULES = [
-  { rule_type: 'title_prefix', pattern: 'chore:' },
-  { rule_type: 'title_prefix', pattern: 'docs:' },
-  { rule_type: 'title_prefix', pattern: 'ci:' },
-  { rule_type: 'title_prefix', pattern: 'test:' },
-  { rule_type: 'title_contains', pattern: 'bump deps' },
-  { rule_type: 'title_contains', pattern: 'dependabot' },
-]
 
 const CreateWorkspaceSchema = z.object({
   name: z.string().min(1).max(64),
@@ -50,32 +42,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'SLUG_TAKEN' }, { status: 409 })
   }
 
-  // Create workspace
-  const { data: workspace, error: wsError } = await service
-    .from('workspaces')
-    .insert({ name, slug })
-    .select()
-    .single()
+  // Create workspace, member, settings and ignore rules atomically via RPC
+  const { data: workspace, error: wsError } = await service.rpc('create_workspace_with_defaults', {
+    p_name: name,
+    p_slug: slug,
+    p_user_id: user.id,
+  })
 
   if (wsError || !workspace) {
     return NextResponse.json({ error: 'Failed to create workspace' }, { status: 500 })
   }
-
-  // Add creator as owner
-  await service.from('workspace_members').insert({
-    workspace_id: workspace.id,
-    user_id: user.id,
-    role: 'owner',
-  })
-
-  // Create default settings
-  await Promise.all([
-    service.from('widget_settings').insert({ workspace_id: workspace.id }),
-    service.from('changelog_settings').insert({ workspace_id: workspace.id }),
-    service.from('pr_ignore_rules').insert(
-      DEFAULT_IGNORE_RULES.map(r => ({ workspace_id: workspace.id, ...r }))
-    ),
-  ])
 
   return NextResponse.json({ workspace }, { status: 201 })
 }
