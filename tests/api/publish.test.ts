@@ -86,6 +86,7 @@ function makeServiceMock({
       if (table === 'changelog_entries') return fromEntries as any
       return {} as any
     },
+    rpc: vi.fn().mockResolvedValue({ error: null }),
   } as any)
 }
 

@@ -57,14 +57,8 @@ export async function POST(_req: Request, { params }: Params) {
     .single()
   if (updateError) return NextResponse.json({ error: 'Failed to publish' }, { status: 500 })
 
-  // Increment publish counter
-  await service
-    .from('workspaces')
-    .update({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      publish_count_this_month: (workspace as any).publish_count_this_month + 1,
-    })
-    .eq('id', workspaceId)
+  // Atomic increment via RPC — avoids read-modify-write race under concurrent publishes
+  await service.rpc('increment_publish_count', { p_workspace_id: workspaceId })
 
   // Fire-and-forget email send
   sendPublishEmail({
