@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions — Mergecast",
-  description: "Terms and conditions governing your use of the Mergecast platform.",
+  title: 'Terms of Service',
+  description: 'Terms and conditions for using Mergecast.',
 };
 
 export default function TermsPage() {

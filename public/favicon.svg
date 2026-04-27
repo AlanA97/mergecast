@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <rect width="40" height="40" rx="8" fill="#0a0a0a"/>
+  <!-- Two source branches converging into one -->
+  <circle cx="10" cy="13" r="3" fill="white"/>
+  <circle cx="10" cy="27" r="3" fill="white"/>
+  <circle cx="30" cy="20" r="3" fill="white"/>
+  <!-- Branch lines -->
+  <path d="M13 13 Q24 13 27 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M13 27 Q24 27 27 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { GitBranch, Zap, Mail, Code2, CheckCircle } from 'lucide-react'
 
@@ -39,7 +40,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
-        <span className="font-semibold">Mergecast</span>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.svg" alt="" width={24} height={24} className="rounded" aria-hidden="true" />
+          <span className="font-semibold">Mergecast</span>
+        </div>
         <div className="flex items-center gap-4">
           <Link href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground">
             Pricing
