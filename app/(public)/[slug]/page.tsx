@@ -1,5 +1,6 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { ChangelogEntry } from '@/components/public/changelog-entry'
 import { SubscribeForm } from '@/components/public/subscribe-form'
 import type { Metadata } from 'next'
@@ -104,8 +105,8 @@ export default async function PublicChangelogPage({
             </svg>
             RSS
           </a>
-          <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
-          <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
+          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+          <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
         </div>
         {['free', 'starter'].includes(workspace.plan ?? 'free') && settings?.show_powered_by !== false && (
           <span>

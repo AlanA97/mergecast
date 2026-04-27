@@ -53,7 +53,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background hover:opacity-90 transition-opacity"
+            className="inline-flex items-center justify-center rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-brand-foreground hover:opacity-90 transition-opacity"
           >
             Start free
           </Link>
@@ -76,7 +76,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center rounded-md bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90 transition-opacity"
+                className="inline-flex items-center justify-center rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground hover:opacity-90 transition-opacity"
               >
                 Start for free
               </Link>
@@ -131,7 +131,7 @@ export default function LandingPage() {
             </div>
 
             {/* Floating label */}
-            <div className="absolute -bottom-3 right-4 inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-xs font-medium text-background shadow-md">
+            <div className="absolute -bottom-3 right-4 inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-brand-foreground shadow-md">
               <Code2 className="h-3 w-3" />
               One &lt;script&gt; tag
             </div>
@@ -166,7 +166,7 @@ export default function LandingPage() {
             { step: '3', title: 'Merge → Review → Publish',   desc: 'AI drafts the release note. You review, edit if needed, and publish. Widget updates, subscribers get emailed.' },
           ].map(({ step, title, desc }) => (
             <div key={step} className="flex gap-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-bold">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground text-sm font-bold">
                 {step}
               </div>
               <div>
@@ -185,7 +185,7 @@ export default function LandingPage() {
           {PRICING.map(({ name, price, features, cta, highlighted }) => (
             <div
               key={name}
-              className={`rounded-lg border p-6 space-y-6 ${highlighted ? 'border-foreground' : ''}`}
+              className={`rounded-lg border p-6 space-y-6 ${highlighted ? 'border-brand' : ''}`}
             >
               <div>
                 {highlighted && <Badge className="mb-2">Most popular</Badge>}
@@ -198,7 +198,7 @@ export default function LandingPage() {
               <ul className="space-y-2">
                 {features.map(f => (
                   <li key={f} className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-brand shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -207,7 +207,7 @@ export default function LandingPage() {
                 href="/signup"
                 className={`flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors w-full ${
                   highlighted
-                    ? 'bg-foreground text-background hover:opacity-90'
+                    ? 'bg-brand text-brand-foreground hover:opacity-90'
                     : 'border border-input hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
