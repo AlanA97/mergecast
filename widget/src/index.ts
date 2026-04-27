@@ -96,7 +96,7 @@
     createWidget({
       position: 'bottom-right',
       theme: 'light',
-      accentColor: '#000000',
+      accentColor: '#10b981',
       buttonLabel: "What's new",
     })
   }

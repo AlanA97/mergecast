@@ -68,7 +68,7 @@ export default function OnboardingPage() {
             >
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                  step === s ? 'bg-foreground text-background' : 'bg-muted'
+                  step === s ? 'bg-brand text-brand-foreground' : 'bg-muted'
                 }`}
               >
                 {i + 1}

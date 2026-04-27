@@ -111,7 +111,7 @@ export default async function PublicChangelogPage({
         {['free', 'starter'].includes(workspace.plan ?? 'free') && settings?.show_powered_by !== false && (
           <span>
             Powered by{' '}
-            <a href="https://mergecast.co" className="underline">
+            <a href="https://mergecast.co" className="underline text-brand hover:opacity-80 transition-opacity">
               Mergecast
             </a>
           </span>
