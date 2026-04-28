@@ -1,5 +1,9 @@
 # Mergecast MVP Implementation Plan
 
+> **Status: ✅ Completed** — All tasks implemented and merged to `main`.  
+> Note: migrations were later consolidated. The canonical schema is now in three baseline files:  
+> `001_schema.sql`, `002_functions.sql`, `003_rls.sql`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build Mergecast — an AI-powered changelog SaaS that connects to GitHub, auto-drafts release notes from merged PRs, hosts a public changelog page, emails subscribers, and provides an embeddable widget.

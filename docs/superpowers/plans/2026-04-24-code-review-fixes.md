@@ -1,5 +1,9 @@
 # Code Review Fixes Implementation Plan
 
+> **Status: ✅ Completed** — All tasks implemented and merged to `main`.  
+> Note: `005_security_and_idempotency.sql` referenced here was absorbed into the consolidated baseline migrations.  
+> The canonical schema is now: `001_schema.sql`, `002_functions.sql`, `003_rls.sql`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fix all Critical, High, and Medium issues identified in the code review: race conditions, security gaps, null crashes, and type safety.

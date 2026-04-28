@@ -1,7 +1,7 @@
 # Mergecast v1.1 — Defensibility Sprint Design
 
 **Date:** 2026-04-24
-**Status:** Approved — ready for implementation planning
+**Status:** ✅ Implemented — shipped to `main`
 **Context:** Post-MVP hardening. Fixes spec gaps that create first impressions of incompleteness, and adds the two mechanisms that create genuine lock-in: a viral distribution loop ("Powered by Mergecast") and a retention signal (entry view analytics). Also adds PR noise filtering to reduce the most common churn driver, RSS for developer credibility, and a conversion banner to turn quota hits into upgrades rather than frustration.
 
 ---

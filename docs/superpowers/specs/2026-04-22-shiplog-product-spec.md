@@ -1,7 +1,7 @@
 # Mergecast — Full Product Specification
 
 **Date:** 2026-04-22  
-**Status:** Approved — ready for implementation planning  
+**Status:** ✅ Implemented — shipped to `main`  
 **Stack:** Next.js 16, Supabase, Stripe, Resend, OpenAI GPT-4o, Tailwind + shadcn/ui, Vercel
 
 ---

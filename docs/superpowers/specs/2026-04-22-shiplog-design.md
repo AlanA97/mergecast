@@ -1,7 +1,7 @@
 # Mergecast — Product Design Spec
 
 **Date:** 2026-04-22  
-**Status:** Approved for implementation  
+**Status:** ✅ Implemented — shipped to `main`  
 **Founder profile:** Solo, senior software engineer  
 **Target launch:** 4 weeks from start
 

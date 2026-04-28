@@ -1,5 +1,9 @@
 # Mergecast v1.1 — Defensibility Sprint Implementation Plan
 
+> **Status: ✅ Completed** — All tasks implemented and merged to `main`.  
+> Note: `003_view_count_and_ignore_rules.sql` referenced here was absorbed into the consolidated baseline migrations.  
+> The canonical schema is now: `001_schema.sql`, `002_functions.sql`, `003_rls.sql`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add six targeted improvements that fix product completeness gaps and create genuine retention and distribution mechanisms: PR ignore rules, entry view analytics, RSS feed, "Powered by Mergecast" settings toggle, approaching-limit conversion banner, and a widget-first landing page rewrite.
