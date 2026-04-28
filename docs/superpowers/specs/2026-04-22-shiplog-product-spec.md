@@ -33,7 +33,7 @@
 #### Public Changelog Page `changelog.mergecast.co/[slug]` or custom domain
 - Workspace logo + name at top
 - List of published entries (newest first)
-- Each entry: title, date, markdown body rendered
+- Each entry: title, date, Markdown body rendered
 - Email subscribe form at top (name optional, email required)
 - "Powered by Mergecast" badge (hidden on paid plans if toggled)
 - RSS feed link
@@ -123,7 +123,7 @@ Main authenticated interface. Left sidebar nav.
 
 **Left panel (60%):**
 - Editable title field (defaults to AI-suggested title)
-- Rich text editor (markdown) for final_content — populated from ai_draft on first load
+- Rich text editor (Markdown) for final_content — populated from AI_draft on first load
 - "Regenerate with AI" button (re-runs OpenAI with same PR data)
 - Character/word count
 

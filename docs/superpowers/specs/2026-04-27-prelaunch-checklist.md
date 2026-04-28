@@ -7,30 +7,30 @@
 
 ## 1. What's already done (code is merged)
 
-All of the following are on `main` and require no further code changes:
+All the following are on `main` and require no further code changes:
 
-| Area | Done |
-|---|---|
-| Security: IDOR membership checks on all authenticated routes | ✅ |
-| Security: timing-safe cron secret comparison | ✅ |
-| Security: open redirect prevention in auth callback | ✅ |
-| Security: `server-only` guard on Supabase service client | ✅ |
-| Security: HTML escaping in Resend email templates | ✅ |
-| Security: Stripe/GitHub env var guards (fail fast on boot) | ✅ |
-| Security: Content-Security-Policy header | ✅ |
-| DB: 3 clean baseline migrations (schema, functions, RLS) | ✅ |
-| DB: atomic publish counter via Postgres RPC | ✅ |
-| DB: transactional workspace creation via Postgres RPC | ✅ |
-| DB: all CHECK constraints (plan, role, status, accent_color, position, theme) | ✅ |
-| DB: `updated_at` triggers on all relevant tables | ✅ |
-| DB: complete FK index coverage | ✅ |
-| Rate limiting on public subscribe endpoint (5 req/IP/min) | ✅ |
-| Pricing consistency across landing page, billing page, and API | ✅ |
-| Branded 404 and 500 error pages | ✅ |
-| `robots.txt` and dynamic `sitemap.xml` | ✅ |
-| SVG + PNG favicon with apple-touch-icon | ✅ |
-| Mobile-responsive dashboard (collapsible sidebar, stacking entry editor) | ✅ |
-| Vercel cron job configured (`vercel.json`) | ✅ |
+| Area                                                                          | Done |
+|-------------------------------------------------------------------------------|------|
+| Security: IDOR membership checks on all authenticated routes                  | ✅    |
+| Security: timing-safe cron secret comparison                                  | ✅    |
+| Security: open redirect prevention in auth callback                           | ✅    |
+| Security: `server-only` guard on Supabase service client                      | ✅    |
+| Security: HTML escaping in Resend email templates                             | ✅    |
+| Security: Stripe/GitHub env var guards (fail fast on boot)                    | ✅    |
+| Security: Content-Security-Policy header                                      | ✅    |
+| DB: 3 clean baseline migrations (schema, functions, RLS)                      | ✅    |
+| DB: atomic publish counter via Postgres RPC                                   | ✅    |
+| DB: transactional workspace creation via Postgres RPC                         | ✅    |
+| DB: all CHECK constraints (plan, role, status, accent_color, position, theme) | ✅    |
+| DB: `updated_at` triggers on all relevant tables                              | ✅    |
+| DB: complete FK index coverage                                                | ✅    |
+| Rate limiting on public subscribe endpoint (5 req/IP/min)                     | ✅    |
+| Pricing consistency across landing page, billing page, and API                | ✅    |
+| Branded 404 and 500 error pages                                               | ✅    |
+| `robots.txt` and dynamic `sitemap.xml`                                        | ✅    |
+| SVG + PNG favicon with apple-touch-icon                                       | ✅    |
+| Mobile-responsive dashboard (collapsible sidebar, stacking entry editor)      | ✅    |
+| Vercel cron job configured (`vercel.json`)                                    | ✅    |
 
 ---
 
@@ -66,11 +66,11 @@ All of the following are on `main` and require no further code changes:
 
 1. Create three products in the Stripe dashboard (or use the API):
 
-   | Product | Price | Billing | Env var |
-   |---|---|---|---|
+   | Product | Price  | Billing           | Env var                        |
+   |---------|--------|-------------------|--------------------------------|
    | Starter | $19.00 | Monthly recurring | `STRIPE_PRICE_STARTER_MONTHLY` |
-   | Growth | $49.00 | Monthly recurring | `STRIPE_PRICE_GROWTH_MONTHLY` |
-   | Scale | $79.00 | Monthly recurring | `STRIPE_PRICE_SCALE_MONTHLY` |
+   | Growth  | $49.00 | Monthly recurring | `STRIPE_PRICE_GROWTH_MONTHLY`  |
+   | Scale   | $79.00 | Monthly recurring | `STRIPE_PRICE_SCALE_MONTHLY`   |
 
    Copy each `price_xxx` ID into the corresponding env var.
 
@@ -148,7 +148,7 @@ Framework preset: **Next.js**. No custom build command needed — `npm run build
 
 ### 3.2 Environment variables
 
-Set all of the following in Vercel → Project → Settings → Environment Variables (Production):
+Set all the following in Vercel → Project → Settings → Environment Variables (Production):
 
 ```
 NEXT_PUBLIC_APP_URL=https://mergecast.co

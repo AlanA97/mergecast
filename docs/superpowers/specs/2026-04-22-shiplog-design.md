@@ -23,7 +23,7 @@ Mergecast connects to a GitHub repo, listens for merged PRs, uses AI to generate
 
 ## Target User
 
-**Primary:** Indie hackers and early-stage SaaS founders (1–10 person teams) who ship regularly and want professional user-facing communication without a dedicated marketing person.
+**Primary:** Indie hackers and early-stage SaaS founders (1–10-person teams) who ship regularly and want professional user-facing communication without a dedicated marketing person.
 
 **Secondary:** Growth-stage SaaS teams ($1M–$5M ARR) who need to systematize changelog communication across multiple products.
 
@@ -117,12 +117,12 @@ email_sends      (id, workspace_id, entry_id, sent_at, recipient_count)
 
 ## Pricing
 
-| Tier    | Price  | Limits                                                        |
-|---------|--------|---------------------------------------------------------------|
+| Tier    | Price  | Limits                                                          |
+|---------|--------|-----------------------------------------------------------------|
 | Free    | $0     | 1 repo, 3 publishes/mo, 100 subscribers, mergecast.co subdomain |
-| Starter | $19/mo | 1 repo, unlimited publishes, custom domain, 1k subscribers    |
-| Growth  | $49/mo | 3 repos, unlimited, 10k subscribers, widget + email           |
-| Scale   | $79/mo | Unlimited repos, 50k subscribers, team seats                  |
+| Starter | $19/mo | 1 repo, unlimited publishes, custom domain, 1k subscribers      |
+| Growth  | $49/mo | 3 repos, unlimited, 10k subscribers, widget + email             |
+| Scale   | $79/mo | Unlimited repos, 50k subscribers, team seats                    |
 
 ---
 

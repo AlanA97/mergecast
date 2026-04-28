@@ -4823,31 +4823,31 @@ git push origin v0.1.0
 
 **Spec coverage check:**
 
-| Spec section | Covered in tasks |
-|---|---|
-| Landing page | Task 19 |
-| Sign up / Sign in | Task 4 |
-| Onboarding (3 steps) | Tasks 5, 6, 7 |
-| GitHub webhook + AI draft | Tasks 8, 9, 10 |
-| Dashboard (entry list) | Tasks 11, 12 |
-| Entry detail (review/edit/publish) | Task 13 |
-| Subscribers page | Task 21 |
-| Widget page + embed | Task 16 |
-| Settings page | Task 21 |
-| Billing page | Task 18 |
-| Admin panel | Task 20 |
-| Public changelog page | Task 14 |
-| Email (confirmation + broadcast) | Task 15 |
-| Stripe Checkout + Portal | Task 18 |
-| Stripe webhook sync | Tasks 17, 18 |
-| Publish quota enforcement | Tasks 3, 5, 13 |
-| Subscriber limit enforcement | Task 14 |
-| Monthly quota reset (cron) | Task 22 |
-| Confirm subscription | Task 14 |
-| Unsubscribe | Task 14 |
-| RLS policies | Task 2 |
-| GitHub HMAC validation | Task 8 |
-| Plan limits config | Task 3 |
+| Spec section                       | Covered in tasks |
+|------------------------------------|------------------|
+| Landing page                       | Task 19          |
+| Sign up / Sign in                  | Task 4           |
+| Onboarding (3 steps)               | Tasks 5, 6, 7    |
+| GitHub webhook + AI draft          | Tasks 8, 9, 10   |
+| Dashboard (entry list)             | Tasks 11, 12     |
+| Entry detail (review/edit/publish) | Task 13          |
+| Subscribers page                   | Task 21          |
+| Widget page + embed                | Task 16          |
+| Settings page                      | Task 21          |
+| Billing page                       | Task 18          |
+| Admin panel                        | Task 20          |
+| Public changelog page              | Task 14          |
+| Email (confirmation + broadcast)   | Task 15          |
+| Stripe Checkout + Portal           | Task 18          |
+| Stripe webhook sync                | Tasks 17, 18     |
+| Publish quota enforcement          | Tasks 3, 5, 13   |
+| Subscriber limit enforcement       | Task 14          |
+| Monthly quota reset (cron)         | Task 22          |
+| Confirm subscription               | Task 14          |
+| Unsubscribe                        | Task 14          |
+| RLS policies                       | Task 2           |
+| GitHub HMAC validation             | Task 8           |
+| Plan limits config                 | Task 3           |
 
 All spec sections covered. No gaps found.
 

@@ -22,14 +22,14 @@
 
 Install these before starting:
 
-| Tool | Version | Install |
-|------|---------|---------|
-| Node.js | 20+ | https://nodejs.org or `nvm install 20` |
-| npm | 10+ | comes with Node |
-| Git | any | https://git-scm.com |
-| Supabase CLI | latest | `npm install -g supabase` |
-| Stripe CLI | latest | https://stripe.com/docs/stripe-cli |
-| ngrok (or similar) | any | https://ngrok.com — needed to receive GitHub webhooks locally |
+| Tool               | Version | Install                                                       |
+|--------------------|---------|---------------------------------------------------------------|
+| Node.js            | 20+     | https://nodejs.org or `nvm install 20`                        |
+| npm                | 10+     | comes with Node                                               |
+| Git                | any     | https://git-scm.com                                           |
+| Supabase CLI       | latest  | `npm install -g supabase`                                     |
+| Stripe CLI         | latest  | https://stripe.com/docs/stripe-cli                            |
+| ngrok (or similar) | any     | https://ngrok.com — needed to receive GitHub webhooks locally |
 
 > **Why ngrok?** GitHub App webhooks require a public HTTPS URL. ngrok creates a tunnel from a public URL to your `localhost:3000` in one command.
 
@@ -95,25 +95,25 @@ Now open `.env.local` and fill in each variable — see [§3 Environment Variabl
 
 ### Quick reference
 
-| Variable | Required | Dev source | Description |
-|----------|----------|-----------|-------------|
-| `NEXT_PUBLIC_APP_URL` | ✅ | `http://localhost:3000` | Base URL — used in emails and redirect links |
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | `supabase start` output | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅ | `supabase start` output | Supabase anon key (safe to expose) |
-| `SUPABASE_SECRET_KEY` | ✅ | `supabase start` output | Supabase service role key — **never expose to client** |
-| `NEXT_PUBLIC_GITHUB_APP_SLUG` | ✅ | GitHub App settings | The URL slug of your GitHub App |
-| `GITHUB_APP_ID` | ✅ | GitHub App settings | Numeric App ID |
-| `GITHUB_APP_PRIVATE_KEY` | ✅ | GitHub App → generate key | Base64-encoded PEM (see below) |
-| `GITHUB_APP_WEBHOOK_SECRET` | ✅ | you choose | Random string used to verify webhook payloads |
-| `OPENAI_API_KEY` | ✅ | platform.openai.com | API key with access to `gpt-4o` |
-| `STRIPE_SECRET_KEY` | ✅ | Stripe dashboard | Use `sk_test_...` for dev, `sk_live_...` for prod |
-| `STRIPE_WEBHOOK_SECRET` | ✅ | Stripe CLI / dashboard | Webhook signing secret |
-| `STRIPE_PRICE_STARTER_MONTHLY` | ✅ | Stripe dashboard | `price_...` ID for $19/mo Starter |
-| `STRIPE_PRICE_GROWTH_MONTHLY` | ✅ | Stripe dashboard | `price_...` ID for $49/mo Growth |
-| `STRIPE_PRICE_SCALE_MONTHLY` | ✅ | Stripe dashboard | `price_...` ID for $79/mo Scale |
-| `RESEND_API_KEY` | ✅ | resend.com | API key for transactional email |
-| `RESEND_FROM_EMAIL` | ✅ | `noreply@mergecast.co` | Must match a verified sending domain |
-| `CRON_SECRET` | ✅ | you generate | Secret for the monthly quota-reset cron endpoint |
+| Variable                               | Required | Dev source                | Description                                            |
+|----------------------------------------|----------|---------------------------|--------------------------------------------------------|
+| `NEXT_PUBLIC_APP_URL`                  | ✅        | `http://localhost:3000`   | Base URL — used in emails and redirect links           |
+| `NEXT_PUBLIC_SUPABASE_URL`             | ✅        | `supabase start` output   | Supabase project URL                                   |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅        | `supabase start` output   | Supabase anon key (safe to expose)                     |
+| `SUPABASE_SECRET_KEY`                  | ✅        | `supabase start` output   | Supabase service role key — **never expose to client** |
+| `NEXT_PUBLIC_GITHUB_APP_SLUG`          | ✅        | GitHub App settings       | The URL slug of your GitHub App                        |
+| `GITHUB_APP_ID`                        | ✅        | GitHub App settings       | Numeric App ID                                         |
+| `GITHUB_APP_PRIVATE_KEY`               | ✅        | GitHub App → generate key | Base64-encoded PEM (see below)                         |
+| `GITHUB_APP_WEBHOOK_SECRET`            | ✅        | you choose                | Random string used to verify webhook payloads          |
+| `OPENAI_API_KEY`                       | ✅        | platform.openai.com       | API key with access to `gpt-4o`                        |
+| `STRIPE_SECRET_KEY`                    | ✅        | Stripe dashboard          | Use `sk_test_...` for dev, `sk_live_...` for prod      |
+| `STRIPE_WEBHOOK_SECRET`                | ✅        | Stripe CLI / dashboard    | Webhook signing secret                                 |
+| `STRIPE_PRICE_STARTER_MONTHLY`         | ✅        | Stripe dashboard          | `price_...` ID for $19/mo Starter                      |
+| `STRIPE_PRICE_GROWTH_MONTHLY`          | ✅        | Stripe dashboard          | `price_...` ID for $49/mo Growth                       |
+| `STRIPE_PRICE_SCALE_MONTHLY`           | ✅        | Stripe dashboard          | `price_...` ID for $79/mo Scale                        |
+| `RESEND_API_KEY`                       | ✅        | resend.com                | API key for transactional email                        |
+| `RESEND_FROM_EMAIL`                    | ✅        | `noreply@mergecast.co`    | Must match a verified sending domain                   |
+| `CRON_SECRET`                          | ✅        | you generate              | Secret for the monthly quota-reset cron endpoint       |
 
 ### Detailed setup instructions per service
 
@@ -233,7 +233,7 @@ App runs at http://localhost:3000.
 stripe listen --forward-to http://localhost:3000/api/webhooks/stripe
 ```
 
-On startup it prints:
+On startup, it prints:
 
 ```
 > Ready! Your webhook signing secret is whsec_... (^C to quit)
@@ -295,22 +295,22 @@ npm test -- --reporter=verbose subscribe
 
 ### What the tests cover
 
-| File | Covers |
-|------|--------|
-| `tests/lib/plans.test.ts` | Plan limits, price ID mapping |
-| `tests/lib/quota.test.ts` | Quota enforcement, per-month reset logic |
-| `tests/lib/github/webhook.test.ts` | PR payload parsing, signature validation |
-| `tests/lib/github/ignore-rules.test.ts` | Rule matching (title prefix, contains, label) |
-| `tests/lib/openai/generate-draft.test.ts` | AI draft generation prompting |
-| `tests/lib/stripe/webhooks.test.ts` | Stripe event handling |
-| `tests/api/auth/callback.test.ts` | Auth callback open-redirect prevention |
-| `tests/api/cron/reset-quotas.test.ts` | Cron endpoint auth + quota reset |
-| `tests/api/entries/route.test.ts` | Entry CRUD, IDOR checks |
-| `tests/api/public/subscribe.test.ts` | Subscribe flow, rate limiting, limit enforcement |
-| `tests/api/public/publish.test.ts` | Publish flow, quota checks |
-| `tests/api/public/rss.test.ts` | RSS feed generation |
-| `tests/api/webhooks/webhook.test.ts` | GitHub webhook end-to-end |
-| `tests/api/workspaces/ignore-rules.test.ts` | Ignore rule CRUD |
+| File                                        | Covers                                           |
+|---------------------------------------------|--------------------------------------------------|
+| `tests/lib/plans.test.ts`                   | Plan limits, price ID mapping                    |
+| `tests/lib/quota.test.ts`                   | Quota enforcement, per-month reset logic         |
+| `tests/lib/github/webhook.test.ts`          | PR payload parsing, signature validation         |
+| `tests/lib/github/ignore-rules.test.ts`     | Rule matching (title prefix, contains, label)    |
+| `tests/lib/openai/generate-draft.test.ts`   | AI draft generation prompting                    |
+| `tests/lib/stripe/webhooks.test.ts`         | Stripe event handling                            |
+| `tests/api/auth/callback.test.ts`           | Auth callback open-redirect prevention           |
+| `tests/api/cron/reset-quotas.test.ts`       | Cron endpoint auth + quota reset                 |
+| `tests/api/entries/route.test.ts`           | Entry CRUD, IDOR checks                          |
+| `tests/api/public/subscribe.test.ts`        | Subscribe flow, rate limiting, limit enforcement |
+| `tests/api/public/publish.test.ts`          | Publish flow, quota checks                       |
+| `tests/api/public/rss.test.ts`              | RSS feed generation                              |
+| `tests/api/webhooks/webhook.test.ts`        | GitHub webhook end-to-end                        |
+| `tests/api/workspaces/ignore-rules.test.ts` | Ignore rule CRUD                                 |
 
 ### Linting
 
@@ -426,15 +426,15 @@ The 6th request should return:
 2. Copy the `<script>` snippet shown
 3. Create a bare HTML file on your machine:
 
-```html
-<!DOCTYPE html>
-<html>
-  <body>
-    <h1>My App</h1>
-    <!-- paste the snippet here -->
-  </body>
-</html>
-```
+   ```html
+   <!DOCTYPE html>
+   <html lang="en">
+     <body>
+       <h1>My App</h1>
+       <!-- paste the snippet here -->
+     </body>
+   </html>
+   ```
 
 4. Open the HTML file in a browser (or serve it with `npx serve .`)
 5. A "What's new" button should appear — clicking it shows the drawer with your published entries
@@ -461,13 +461,13 @@ Expected: `401 Unauthorized`
 
 ### Flow 9: Public pages
 
-| URL | Expected |
-|-----|----------|
-| `/<slug>` | Public changelog with published entries |
-| `/<slug>/rss.xml` | Valid RSS 2.0 feed |
-| `/sitemap.xml` | Lists your workspace slug |
-| `/robots.txt` | Disallows `/dashboard/` and `/api/` |
-| `/nonexistent-slug` | Branded 404 page |
+| URL                 | Expected                                |
+|---------------------|-----------------------------------------|
+| `/<slug>`           | Public changelog with published entries |
+| `/<slug>/rss.xml`   | Valid RSS 2.0 feed                      |
+| `/sitemap.xml`      | Lists your workspace slug               |
+| `/robots.txt`       | Disallows `/dashboard/` and `/api/`     |
+| `/nonexistent-slug` | Branded 404 page                        |
 
 ---
 
@@ -492,33 +492,7 @@ Before deploying, you need live (not local) versions of every service. Follow th
 
 ### 7.3 Set environment variables in Vercel
 
-Go to your project → **Settings → Environment Variables** and add all of the following for the **Production** environment:
-
-```
-NEXT_PUBLIC_APP_URL=https://mergecast.co
-
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon key>
-SUPABASE_SECRET_KEY=<service role key>
-
-NEXT_PUBLIC_GITHUB_APP_SLUG=<your-app-slug>
-GITHUB_APP_ID=<numeric id>
-GITHUB_APP_PRIVATE_KEY=<base64-encoded PEM, no newlines>
-GITHUB_APP_WEBHOOK_SECRET=<webhook secret>
-
-OPENAI_API_KEY=sk-...
-
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_STARTER_MONTHLY=price_...
-STRIPE_PRICE_GROWTH_MONTHLY=price_...
-STRIPE_PRICE_SCALE_MONTHLY=price_...
-
-RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=noreply@mergecast.co
-
-CRON_SECRET=<generate with: openssl rand -hex 32>
-```
+Go to your project → **Settings → Environment Variables** and add all the **Production** environment.
 
 > **Common mistake:** `GITHUB_APP_PRIVATE_KEY` must be the base64-encoded PEM with **no newlines**. Generate it with:
 > ```bash

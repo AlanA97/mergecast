@@ -2043,19 +2043,19 @@ git commit -m "feat: widget-first landing page hero and reordered features"
 
 **Spec coverage check:**
 
-| Spec section | Task |
-|---|---|
-| "Powered by Mergecast" badge | Task 11 (toggle) + public page already renders it |
-| Entry view analytics (shallow) | Tasks 8, 9 |
-| PR ignore rules | Tasks 3, 4, 5, 6, 11 |
-| RSS feed | Task 7 |
-| Widget-first landing page | Task 13 |
-| Approaching-limit banner | Task 12 |
-| `increment_entry_views` Postgres function | Task 1 |
-| `pr_ignore_rules` table + RLS | Task 1 |
-| Default rules on workspace creation | Task 5 |
-| Changelog settings API | Task 10 |
-| Labels in ParsedPullRequest | Task 2 |
+| Spec section                              | Task                                              |
+|-------------------------------------------|---------------------------------------------------|
+| "Powered by Mergecast" badge              | Task 11 (toggle) + public page already renders it |
+| Entry view analytics (shallow)            | Tasks 8, 9                                        |
+| PR ignore rules                           | Tasks 3, 4, 5, 6, 11                              |
+| RSS feed                                  | Task 7                                            |
+| Widget-first landing page                 | Task 13                                           |
+| Approaching-limit banner                  | Task 12                                           |
+| `increment_entry_views` Postgres function | Task 1                                            |
+| `pr_ignore_rules` table + RLS             | Task 1                                            |
+| Default rules on workspace creation       | Task 5                                            |
+| Changelog settings API                    | Task 10                                           |
+| Labels in ParsedPullRequest               | Task 2                                            |
 
 All spec sections covered. ✅
 

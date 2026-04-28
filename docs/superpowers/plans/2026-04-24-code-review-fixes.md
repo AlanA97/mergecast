@@ -12,20 +12,20 @@
 
 ## Files Modified
 
-| File | Change |
-|------|--------|
-| `package.json` | Add `date-fns` dependency |
-| `lib/types.ts` | Create — shared Workspace + Entry interfaces |
-| `lib/quota.ts` | Atomic reset via `.lt()` filter |
-| `app/api/webhooks/github/route.ts` | try/catch for AI draft, check insert error, handle unique conflict |
-| `app/(app)/dashboard/page.tsx` | Null guard → redirect to `/onboarding` |
-| `app/admin/page.tsx` | `app_metadata` check, `date-fns` formatting |
-| `lib/resend/email.ts` | Guard null sendRecord, add inter-batch delay |
-| `app/(app)/dashboard/settings/page.tsx` | Error state on `addRule` failure |
-| `next.config.ts` | Security headers |
-| `supabase/migrations/005_security_and_idempotency.sql` | Create — RLS fix, UNIQUE constraint, better index |
-| `tests/lib/quota.test.ts` | Test for atomic reset condition |
-| `tests/api/webhook.test.ts` | Create — duplicate PR handling |
+| File                                                   | Change                                                             |
+|--------------------------------------------------------|--------------------------------------------------------------------|
+| `package.json`                                         | Add `date-fns` dependency                                          |
+| `lib/types.ts`                                         | Create — shared Workspace + Entry interfaces                       |
+| `lib/quota.ts`                                         | Atomic reset via `.lt()` filter                                    |
+| `app/api/webhooks/github/route.ts`                     | try/catch for AI draft, check insert error, handle unique conflict |
+| `app/(app)/dashboard/page.tsx`                         | Null guard → redirect to `/onboarding`                             |
+| `app/admin/page.tsx`                                   | `app_metadata` check, `date-fns` formatting                        |
+| `lib/resend/email.ts`                                  | Guard null sendRecord, add inter-batch delay                       |
+| `app/(app)/dashboard/settings/page.tsx`                | Error state on `addRule` failure                                   |
+| `next.config.ts`                                       | Security headers                                                   |
+| `supabase/migrations/005_security_and_idempotency.sql` | Create — RLS fix, UNIQUE constraint, better index                  |
+| `tests/lib/quota.test.ts`                              | Test for atomic reset condition                                    |
+| `tests/api/webhook.test.ts`                            | Create — duplicate PR handling                                     |
 
 ---
 
