@@ -39,3 +39,6 @@ enable_confirmations = false
 enabled = true
 client_id = "env(SUPABASE_AUTH_GITHUB_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_GITHUB_SECRET)"
+# redirect_uri is the URL Supabase tells GitHub to redirect back to after OAuth.
+# For local dev this must be the local Supabase Auth callback URL.
+redirect_uri = "http://127.0.0.1:54321/auth/v1/callback"
