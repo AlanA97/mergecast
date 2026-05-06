@@ -23,6 +23,27 @@
     }
   }
 
+  async function fetchSettings(): Promise<{
+    position: string
+    theme: string
+    accentColor: string
+    buttonLabel: string
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/api/public/widget-settings/${workspaceSlug}`)
+      const data = await res.json()
+      const s = data.settings
+      return {
+        position: s?.position ?? 'bottom-right',
+        theme: s?.theme ?? 'light',
+        accentColor: s?.accent_color ?? '#000000',
+        buttonLabel: s?.button_label ?? "What's new",
+      }
+    } catch {
+      return { position: 'bottom-right', theme: 'light', accentColor: '#000000', buttonLabel: "What's new" }
+    }
+  }
+
   function createWidget(settings: {
     position: string
     theme: string
@@ -31,14 +52,18 @@
   }) {
     const container = document.createElement('div')
     container.id = 'mergecast-widget'
-    container.style.cssText = `position:fixed;${settings.position.includes('right') ? 'right:24px' : 'left:24px'};bottom:24px;z-index:9999;font-family:system-ui,sans-serif;`
+    const isRight = settings.position.includes('right')
+    const isBottom = settings.position.includes('bottom')
+    container.style.cssText = `position:fixed;${isRight ? 'right:24px' : 'left:24px'};${isBottom ? 'bottom:24px' : 'top:24px'};z-index:9999;font-family:system-ui,sans-serif;`
 
     const button = document.createElement('button')
     button.textContent = settings.buttonLabel
     button.style.cssText = `background:${settings.accentColor};color:#fff;border:none;border-radius:9999px;padding:8px 16px;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);`
 
+    const drawerBottom = isBottom ? '48px' : 'auto'
+    const drawerTop = isBottom ? 'auto' : '48px'
     const drawer = document.createElement('div')
-    drawer.style.cssText = `display:none;position:absolute;bottom:48px;${settings.position.includes('right') ? 'right:0' : 'left:0'};width:320px;max-height:480px;overflow-y:auto;background:${settings.theme === 'dark' ? '#1a1a1a' : '#fff'};color:${settings.theme === 'dark' ? '#fff' : '#111'};border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:16px;`
+    drawer.style.cssText = `display:none;position:absolute;bottom:${drawerBottom};top:${drawerTop};${isRight ? 'right:0' : 'left:0'};width:320px;max-height:480px;overflow-y:auto;background:${settings.theme === 'dark' ? '#1a1a1a' : '#fff'};color:${settings.theme === 'dark' ? '#fff' : '#111'};border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:16px;`
 
     function renderEntries() {
       drawer.textContent = ''
@@ -92,13 +117,8 @@
   }
 
   async function init() {
-    await fetchEntries()
-    createWidget({
-      position: 'bottom-right',
-      theme: 'light',
-      accentColor: '#10b981',
-      buttonLabel: "What's new",
-    })
+    const [settings] = await Promise.all([fetchSettings(), fetchEntries()])
+    createWidget(settings)
   }
 
   if (document.readyState === 'loading') {

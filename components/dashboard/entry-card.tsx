@@ -21,7 +21,6 @@ interface EntryCardProps {
     published_at: string | null
     view_count: number
   }
-  workspaceId: string
 }
 
 export function EntryCard({ entry }: EntryCardProps) {

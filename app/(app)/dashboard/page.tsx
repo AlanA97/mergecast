@@ -123,7 +123,7 @@ export default async function DashboardPage({
           ) : (
             <div className="space-y-2">
               {entries.map(entry => (
-                <EntryCard key={entry.id} entry={entry} workspaceId={workspace.id} />
+                <EntryCard key={entry.id} entry={entry} />
               ))}
             </div>
           )}

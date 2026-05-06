@@ -77,6 +77,7 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
     })
     const data = await res.json()
     if (data.entry?.ai_draft) setContent(data.entry.ai_draft)
+    if (data.entry?.title) setTitle(data.entry.title)
     setRegenerating(false)
   }
 

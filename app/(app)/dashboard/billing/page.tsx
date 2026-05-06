@@ -101,15 +101,19 @@ export default function BillingPage() {
                   <li key={f}>✓ {f}</li>
                 ))}
               </ul>
-              {!isCurrentPlan && apiPlan?.priceId && (
+              {!isCurrentPlan && !isOnPaidPlan && apiPlan?.priceId && (
                 <Button
                   className="w-full"
-                  variant={isCurrentPlan ? 'outline' : 'default'}
                   onClick={() => startCheckout(apiPlan.priceId)}
                   disabled={loading}
                 >
                   Upgrade
                 </Button>
+              )}
+              {!isCurrentPlan && isOnPaidPlan && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Use &ldquo;Manage subscription&rdquo; above to switch plans.
+                </p>
               )}
             </div>
           )

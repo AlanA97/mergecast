@@ -44,7 +44,11 @@ export async function POST(_req: Request, { params }: Params) {
 
   const { data: updated, error: updateError } = await service
     .from('changelog_entries')
-    .update({ ai_draft: draft.body, updated_at: new Date().toISOString() })
+    .update({
+      ai_draft: draft.body,
+      title: draft.title || null,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', entryId)
     .select()
     .single()
