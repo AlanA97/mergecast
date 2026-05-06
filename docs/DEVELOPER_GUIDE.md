@@ -24,7 +24,7 @@ Install these before starting:
 
 | Tool               | Version | Install                                                       |
 |--------------------|---------|---------------------------------------------------------------|
-| Bun                | 1.3+    | https://bun.sh — `curl -fsSL https://bun.sh/install \| bash` |
+| Bun                | 1.3+    | https://bun.sh — `curl -fsSL https://bun.sh/install \| bash`  |
 | Node.js            | 20+     | https://nodejs.org or `nvm install 20` — runtime for Next.js  |
 | Git                | any     | https://git-scm.com                                           |
 | Supabase CLI       | latest  | `bun install -g supabase`                                     |
@@ -265,15 +265,28 @@ https://abc123.ngrok-free.app/api/webhooks/github
 
 ### Supabase Auth — enable GitHub OAuth locally
 
-1. Open Supabase Studio at http://127.0.0.1:54323
-2. Go to Authentication → Providers → GitHub
-3. Create a **separate** GitHub OAuth App at https://github.com/settings/developers (this is for user sign-in, not webhooks):
-   - Homepage: `http://localhost:3000`
-   - Callback URL: `http://127.0.0.1:54321/auth/v1/callback`
-4. Paste Client ID and Secret into Supabase Studio
-5. Under Authentication → URL Configuration:
-   - Site URL: `http://localhost:3000`
-   - Redirect URLs: add `http://localhost:3000/api/auth/callback`
+Local Supabase configures OAuth providers via `supabase/config.toml`, **not** the Studio UI (the Studio only shows read-only info locally).
+
+1. Create a **GitHub OAuth App** at https://github.com/settings/developers → **New OAuth App** (this is for user sign-in — separate from the GitHub App used for webhooks):
+   - **Homepage URL:** `http://localhost:3000`
+   - **Authorization callback URL:** `http://127.0.0.1:54321/auth/v1/callback`
+
+2. Copy the **Client ID** and generate a **Client Secret**, then add them to `.env.local`:
+
+   ```env
+   SUPABASE_AUTH_GITHUB_CLIENT_ID=<your-client-id>
+   SUPABASE_AUTH_GITHUB_SECRET=<your-client-secret>
+   ```
+
+3. Restart the local Supabase stack so it picks up the new env vars:
+
+   ```bash
+   supabase stop && supabase start
+   ```
+
+   `supabase/config.toml` already wires these env vars into the GitHub provider — no Studio changes needed.
+
+> **Verify it worked:** open http://127.0.0.1:54323, go to Authentication → Providers. GitHub should show as **Enabled**.
 
 ---
 
