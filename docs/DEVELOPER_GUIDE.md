@@ -24,12 +24,14 @@ Install these before starting:
 
 | Tool               | Version | Install                                                       |
 |--------------------|---------|---------------------------------------------------------------|
-| Node.js            | 20+     | https://nodejs.org or `nvm install 20`                        |
-| npm                | 10+     | comes with Node                                               |
+| Bun                | 1.3+    | https://bun.sh — `curl -fsSL https://bun.sh/install \| bash` |
+| Node.js            | 20+     | https://nodejs.org or `nvm install 20` — runtime for Next.js  |
 | Git                | any     | https://git-scm.com                                           |
-| Supabase CLI       | latest  | `npm install -g supabase`                                     |
+| Supabase CLI       | latest  | `bun install -g supabase`                                     |
 | Stripe CLI         | latest  | https://stripe.com/docs/stripe-cli                            |
 | ngrok (or similar) | any     | https://ngrok.com — needed to receive GitHub webhooks locally |
+
+> **Why bun?** Bun is the package manager for this project — installs are ~5× faster than npm. Node.js is still used as the runtime (Bun as a Next.js 16 runtime has open compatibility issues).
 
 > **Why ngrok?** GitHub App webhooks require a public HTTPS URL. ngrok creates a tunnel from a public URL to your `localhost:3000` in one command.
 
@@ -42,7 +44,7 @@ Install these before starting:
 ```bash
 git clone https://github.com/<your-org>/mergecast.git
 cd mergecast
-npm install
+bun install
 ```
 
 ### 2.2 Create a local Supabase project
@@ -220,12 +222,12 @@ You need three terminal windows running simultaneously for the full local experi
 ### Terminal 1 — Next.js dev server
 
 ```bash
-npm run dev
+bun dev
 ```
 
 App runs at http://localhost:3000.
 
-> The prebuild hook automatically bundles the embeddable widget (`public/widget/widget.js`) before the main build. For dev, it's served directly — run `npm run build:widget` if you change anything in `widget/`.
+> The prebuild hook automatically bundles the embeddable widget (`public/widget/widget.js`) before the main build. For dev, it's served directly — run `bun run build:widget` if you change anything in `widget/`.
 
 ### Terminal 2 — Stripe webhook listener
 
@@ -281,16 +283,16 @@ https://abc123.ngrok-free.app/api/webhooks/github
 
 ```bash
 # Run all tests once
-npm test
+bun run test
 
 # Watch mode (re-runs on file save)
-npm run test:watch
+bun run test:watch
 
 # Run a specific test file
-npm test -- tests/lib/plans.test.ts
+bun run test -- tests/lib/plans.test.ts
 
 # Run tests matching a pattern
-npm test -- --reporter=verbose subscribe
+bun run test -- --reporter=verbose subscribe
 ```
 
 ### What the tests cover
@@ -315,19 +317,19 @@ npm test -- --reporter=verbose subscribe
 ### Linting
 
 ```bash
-npm run lint
+bun run lint
 ```
 
 Fix automatically where possible:
 
 ```bash
-npm run lint -- --fix
+bun run lint --fix
 ```
 
 ### Before every commit / PR
 
 ```bash
-npm test && npm run lint && npm run build
+bun run test && bun run lint && bun run build
 ```
 
 All three must pass with zero errors before merging.
@@ -545,7 +547,7 @@ Run through these checks immediately after going live, before announcing publicl
 ### Automated check — build and tests
 
 ```bash
-npm test && npm run lint && npm run build
+bun run test && bun run lint && bun run build
 ```
 
 All must pass with zero errors.
@@ -628,7 +630,7 @@ echo "$GITHUB_APP_PRIVATE_KEY" | base64 --decode | head -1
 The widget builds before `next build` via the `prebuild` hook. If esbuild fails:
 
 ```bash
-npm run build:widget
+bun run build:widget
 ```
 
 Run it in isolation to see the full error output.

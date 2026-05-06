@@ -144,7 +144,7 @@ All the following are on `main` and require no further code changes:
 vercel --prod
 ```
 
-Framework preset: **Next.js**. No custom build command needed — `npm run build` runs `build:widget` automatically via the `prebuild` hook.
+Framework preset: **Next.js**. No custom build command needed — `bun run build` runs `build:widget` automatically via the `prebuild` hook. Vercel detects `bun.lockb` and uses Bun as the package manager automatically.
 
 ### 3.2 Environment variables
 

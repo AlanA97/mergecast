@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "BUSL-1.1",
+  "packageManager": "bun@1.3.13",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,8 +11,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:widget": "tsx widget/build.ts",
-    "prebuild": "npm run build:widget"
+    "build:widget": "bun widget/build.ts",
+    "prebuild": "bun run build:widget"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -54,7 +55,6 @@
     "eslint-config-next": "16.2.4",
     "jsdom": "^29.0.2",
     "tailwindcss": "^4",
-    "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.1.5"
   }

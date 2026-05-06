@@ -7,12 +7,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Commands
 
 ```bash
-npm run dev          # Start dev server (port 3000)
-npm run build        # Build (auto-runs build:widget first via prebuild hook)
-npm run build:widget # Bundle widget → public/widget/widget.js (esbuild IIFE)
-npm test             # Run Vitest tests once
-npm run test:watch   # Vitest in watch mode
-npm run lint         # ESLint
+bun dev              # Start dev server (port 3000)
+bun run build        # Build (auto-runs build:widget first via prebuild hook)
+bun run build:widget # Bundle widget → public/widget/widget.js (esbuild IIFE)
+bun run test         # Run Vitest tests once
+bun run test:watch   # Vitest in watch mode
+bun run lint         # ESLint
 ```
 
 ## Architecture
@@ -23,14 +23,14 @@ components/           # ui/ (shadcn), dashboard/, public/
 lib/                  # Integrations: supabase/, github/, openai/, stripe/, resend/, plans.ts, quota.ts
 widget/               # Vanilla JS embeddable changelog drawer (esbuild → public/widget/widget.js)
 tests/                # Vitest — mirrors lib/ and api/ structure
-supabase/migrations/  # 4 SQL migration files
+supabase/migrations/  # 3 SQL migration files (001_schema, 002_functions, 003_rls)
 ```
 
 Key integrations (all in `lib/`): **Supabase** (auth + DB + RLS), **OpenAI GPT-4o** (AI drafts), **Stripe** (billing), **GitHub App** (webhook → draft), **Resend** (double opt-in email).
 
 ## Gotchas
 
-- **Widget prebuild**: `npm run build` runs `build:widget` first; editing widget source requires `npm run build:widget` to see changes.
+- **Widget prebuild**: `bun run build` runs `build:widget` first; editing widget source requires `bun run build:widget` to see changes.
 - **GITHUB_APP_PRIVATE_KEY**: Must be base64-encoded PEM — decoded at runtime.
 - **Supabase clients**: Use `createSupabaseServerClient()` (cookie auth) for normal ops; `createSupabaseServiceClient()` (service role) for admin ops only — never expose service role key to client.
 - **Session proxy**: `proxy.ts` matcher must exclude widget, API webhooks, and cron routes to avoid breaking unauthenticated access.
@@ -40,4 +40,4 @@ Key integrations (all in `lib/`): **Supabase** (auth + DB + RLS), **OpenAI GPT-4
 
 ## Testing
 
-Vitest with jsdom. Tests in `tests/lib/` (unit) and `tests/api/` (route handler integration). Run `npm test` before pushing.
+Vitest with jsdom. Tests in `tests/lib/` (unit) and `tests/api/` (route handler integration). Run `bun run test` before pushing.
