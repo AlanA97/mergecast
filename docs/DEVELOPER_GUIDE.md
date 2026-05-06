@@ -373,7 +373,7 @@ Work through each flow after setting up your local environment. Use **test mode*
 
 ### Flow 2: GitHub webhook → draft entry
 
-This requires the ngrok tunnel and GitHub App to be configured.
+This requires the ngrok tunnel and GitHub App to be configured. Test
 
 1. Open a pull request and merge it into `main` on a repo where your GitHub App is installed
 2. Within ~5 seconds, a new row should appear in the `changelog_entries` table with `status = 'draft'`
