@@ -278,15 +278,23 @@ Local Supabase configures OAuth providers via `supabase/config.toml`, **not** th
    SUPABASE_AUTH_GITHUB_SECRET=<your-client-secret>
    ```
 
-3. Restart the local Supabase stack so it picks up the new env vars:
+3. Restart Supabase **with the vars exported into your shell** — `supabase/config.toml` uses `env()` references that read from the shell environment at startup, not from `.env.local`:
 
    ```bash
+   supabase stop && export $(grep 'SUPABASE_AUTH_GITHUB' .env.local | xargs) && supabase start
+   ```
+
+   Or export them manually first, then start:
+
+   ```bash
+   export SUPABASE_AUTH_GITHUB_CLIENT_ID=<your-client-id>
+   export SUPABASE_AUTH_GITHUB_SECRET=<your-client-secret>
    supabase stop && supabase start
    ```
 
-   `supabase/config.toml` already wires these env vars into the GitHub provider — no Studio changes needed.
+   > **Why not just `supabase restart`?** The OAuth provider config is baked in at startup. If Supabase started without the env vars set, the GitHub provider has empty credentials and every sign-in attempt returns `missing redirect URI`. You must stop and start with the vars present.
 
-> **Verify it worked:** open http://localhost:3000 and click **Sign in with GitHub**. If it redirects to GitHub and back, the OAuth is configured correctly. The Studio UI for local providers varies by CLI version — don't rely on it as a check.
+> **Verify it worked:** open http://localhost:3000 and click **Sign in with GitHub**. If it redirects to GitHub and back, the OAuth is configured correctly.
 
 ---
 
