@@ -73,13 +73,14 @@ Keep these — you'll need them for the env file in the next step.
 supabase db reset
 ```
 
-`db reset` drops and recreates the local database, then runs all four migrations in order:
+`db reset` drops and recreates the local database, then runs all five migrations in order:
 
 ```
 supabase/migrations/001_schema.sql        # tables, indexes, constraints
 supabase/migrations/002_functions.sql     # RPC functions, triggers
 supabase/migrations/003_rls.sql           # Row Level Security policies
 supabase/migrations/004_repos_webhook_id.sql  # webhook_id column on repos
+supabase/migrations/005_security_fixes.sql    # scoped view-count RPC, token expiry column
 ```
 
 Re-run this command any time you want a clean slate.
@@ -415,6 +416,8 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 
 > The per-repo `webhook_secret` in the `repos` table is distinct from the app-level `GITHUB_APP_WEBHOOK_SECRET`. Each connected repo gets its own secret generated at connect time.
 
+> **Signature validation note:** The webhook handler returns `200 { ok: true }` for both unrecognised repo IDs and invalid signatures (uniform response to prevent repo-ID enumeration). A successful payload creates a `changelog_entries` row — that is the only confirmation that the signature was valid.
+
 ### Flow 3: Edit and publish an entry
 
 1. Click a draft entry in the dashboard
@@ -431,9 +434,9 @@ The entry should appear there immediately.
 1. Open your public changelog URL (e.g. http://localhost:3000/myworkspace)
 2. Enter a test email and submit the subscribe form
 3. In Resend's dashboard, you should see the confirmation email
-4. The subscriber row in the DB should have `confirmed = false`
-5. Click the confirmation link in the email
-6. The row should update to `confirmed = true`
+4. The subscriber row in the DB should have `confirmed = false` and `confirmation_token_expires_at` set 72 hours from now
+5. Click the confirmation link in the email — links expire after 72 hours; submitting again resends with a fresh link
+6. The row should update to `confirmed = true` and both token columns should be cleared
 7. Publish a new entry — the subscriber should receive the entry email
 
 ### Flow 5: Rate limiting on subscribe
@@ -529,7 +532,7 @@ Expected: `401 Unauthorized`
 
 Before deploying, you need live (not local) versions of every service. Follow the steps in [`docs/superpowers/specs/2026-04-27-prelaunch-checklist.md`](superpowers/specs/2026-04-27-prelaunch-checklist.md) §2 for:
 
-- Supabase cloud project (run all 4 migrations via SQL editor in order: 001 → 002 → 003 → 004)
+- Supabase cloud project (run all 5 migrations via SQL editor in order: 001 → 002 → 003 → 004 → 005)
 - Stripe live products and webhook endpoint
 - GitHub App pointing to `https://mergecast.co/api/webhooks/github`
 - Resend domain verification

@@ -23,7 +23,7 @@ components/           # ui/ (shadcn), dashboard/, public/
 lib/                  # Integrations: supabase/, github/, openai/, stripe/, resend/, plans.ts, quota.ts
 widget/               # Vanilla JS embeddable changelog drawer (esbuild → public/widget/widget.js)
 tests/                # Vitest — mirrors lib/ and api/ structure
-supabase/migrations/  # 4 SQL migration files (001_schema, 002_functions, 003_rls, 004_repos_webhook_id)
+supabase/migrations/  # 5 SQL migration files (001_schema, 002_functions, 003_rls, 004_repos_webhook_id, 005_security_fixes)
 ```
 
 Key integrations (all in `lib/`): **Supabase** (auth + DB + RLS), **OpenAI GPT-4o** (AI drafts), **Stripe** (billing), **GitHub App** (webhook → draft), **Resend** (double opt-in email).
@@ -36,7 +36,9 @@ Key integrations (all in `lib/`): **Supabase** (auth + DB + RLS), **OpenAI GPT-4
 - **Middleware**: `middleware.ts` (not proxy.ts) runs session refresh and auth redirects. Its matcher excludes widget, API webhooks, and cron routes to avoid breaking unauthenticated access.
 - **Cron auth**: `GET /api/cron/reset-quotas` — Vercel Cron sends `Authorization: Bearer {CRON_SECRET}`; the route checks this header. Method is GET, not POST.
 - **Plan quotas**: Published entries per month are hard-enforced in `lib/quota.ts`; reset via Vercel cron on the 1st.
-- **Email subscriptions**: Double opt-in — subscribers are `confirmed = false` until they click the confirmation link.
+- **Email subscriptions**: Double opt-in — subscribers are `confirmed = false` until they click the confirmation link. Confirmation tokens expire after 72 hours; re-submitting the subscribe form refreshes the expiry.
+- **Startup assertions**: `getStripeClient()` and `getResendClient()` throw immediately if their required env vars are absent — check server logs on first request if Stripe/Resend calls fail.
+- **Webhook security**: GitHub webhook handler returns `200 { ok: true }` for both unknown repo IDs and invalid signatures (prevents enumeration). Verify the payload was processed by checking for a new `changelog_entries` row.
 
 ## Testing
 
