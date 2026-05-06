@@ -1,32 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const CONSENT_KEY = 'mergecast_cookie_consent';
 
+// useSyncExternalStore lets React reconcile localStorage (client-only) with SSR
+// without a hydration mismatch. The server snapshot is non-null so the banner is
+// excluded from the initial HTML; the client snapshot reads the real value after
+// hydration. Storage events keep the snapshot fresh across tabs.
+function subscribe(callback: () => void) {
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+}
+
 export function CookieBanner() {
-  // Always false on the server so the first client render matches — no hydration mismatch.
-  // useEffect runs only on the client after hydration to show the banner if needed.
-  const [visible, setVisible] = useState(false);
+  const consent = useSyncExternalStore(
+    subscribe,
+    () => localStorage.getItem(CONSENT_KEY),  // client: read real value
+    () => CONSENT_KEY,                         // server: return non-null → banner hidden in SSR HTML
+  );
 
-  useEffect(() => {
-    if (!localStorage.getItem(CONSENT_KEY)) {
-      setVisible(true);
-    }
-  }, []);
-
-  if (!visible) return null;
+  // Banner is hidden once consent has been recorded (any non-null value)
+  if (consent !== null) return null;
 
   function handleAccept() {
     localStorage.setItem(CONSENT_KEY, 'accepted');
-    setVisible(false);
+    window.dispatchEvent(new StorageEvent('storage'));
   }
 
   function handleDecline() {
     localStorage.setItem(CONSENT_KEY, 'declined');
-    setVisible(false);
+    window.dispatchEvent(new StorageEvent('storage'));
   }
 
   return (
