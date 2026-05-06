@@ -73,12 +73,13 @@ Keep these — you'll need them for the env file in the next step.
 supabase db reset
 ```
 
-`db reset` drops and recreates the local database, then runs all three migrations in order:
+`db reset` drops and recreates the local database, then runs all four migrations in order:
 
 ```
-supabase/migrations/001_schema.sql   # tables, indexes, constraints
-supabase/migrations/002_functions.sql # RPC functions, triggers
-supabase/migrations/003_rls.sql      # Row Level Security policies
+supabase/migrations/001_schema.sql        # tables, indexes, constraints
+supabase/migrations/002_functions.sql     # RPC functions, triggers
+supabase/migrations/003_rls.sql           # Row Level Security policies
+supabase/migrations/004_repos_webhook_id.sql  # webhook_id column on repos
 ```
 
 Re-run this command any time you want a clean slate.
@@ -261,7 +262,10 @@ Copy the `https://` forwarding URL and use it as the Webhook URL in your GitHub 
 https://abc123.ngrok-free.app/api/webhooks/github
 ```
 
-> **Note:** ngrok free tier generates a new URL each session. Update your GitHub App webhook URL when you restart ngrok.
+> **Note:** ngrok free tier generates a new URL each session. When you restart ngrok you need to:
+> 1. Update your GitHub App webhook URL (GitHub settings)
+> 2. Update `NEXT_PUBLIC_APP_URL` in `.env.local` and restart the dev server
+> 3. Reconnect any repos via **Settings → Repositories** (so the per-repo webhook URL is re-registered with the new ngrok address)
 
 ### Supabase Auth — enable GitHub OAuth locally
 
@@ -366,38 +370,57 @@ Work through each flow after setting up your local environment. Use **test mode*
 1. Open http://localhost:3000 and click **Get started**
 2. Sign in with GitHub — you'll be redirected to `/onboarding`
 3. Create a workspace: enter a name, pick a slug
-4. Install the GitHub App when prompted (or skip and install later from Settings)
-5. **Check in Studio:** `workspace_members` table should have one row for your user
+
+4. **Before connecting a repo — set the ngrok URL:**  
+   The webhook URL is baked into the GitHub webhook when you connect a repo. Set `NEXT_PUBLIC_APP_URL` to your ngrok address in `.env.local` and restart the dev server **before** proceeding:
+   ```env
+   NEXT_PUBLIC_APP_URL=https://abc123.ngrok-free.app
+   ```
+
+5. Click **Install GitHub App** — GitHub opens in a new tab. Install on your account or org and grant access to at least one repo.
+
+6. Return to the onboarding tab and click **I've installed it — show repos**. A list of your accessible repos loads from GitHub.
+
+7. Click **Connect →** next to the repo you want to track.
+
+8. **Check in Studio:** `workspace_members` should have one row for your user; `repos` should have one row with `is_active = true` and a non-null `webhook_id`.
 
 **Expected result:** Redirected to `/dashboard` after onboarding completes.
 
+> **Repo management after onboarding:** Go to **Dashboard → Settings → Repositories** to connect additional repos or disconnect existing ones.
+
 ### Flow 2: GitHub webhook → draft entry
 
-This requires the ngrok tunnel and GitHub App to be configured. Test
+This requires the ngrok tunnel and a connected repo (Flow 1 step 5–7 completed).
 
-1. Open a pull request and merge it into `main` on a repo where your GitHub App is installed
+1. Open a pull request and merge it into `main` on the connected repo
 2. Within ~5 seconds, a new row should appear in the `changelog_entries` table with `status = 'draft'`
 3. The entry should appear in your dashboard under **Drafts**
 
 **Shortcut — test without a real PR:**
 
+The webhook handler looks up the incoming `repo.id` in the `repos` table. You need the real `github_repo_id` of a repo you've connected. Find it in Studio: `repos` table → `github_repo_id` column.
+
 ```bash
-# Send a fake merged PR payload to your local endpoint
+# Replace REPO_ID with the github_repo_id from your repos table
+# Replace WEBHOOK_SECRET with that row's webhook_secret (not GITHUB_APP_WEBHOOK_SECRET)
+PAYLOAD='{"action":"closed","pull_request":{"merged":true,"number":1,"title":"Fix login bug","body":"Fixes the login redirect issue","user":{"login":"octocat"},"merged_at":"2026-01-01T00:00:00Z","base":{"repo":{"id":REPO_ID,"full_name":"org/repo","name":"repo"}},"labels":[]}}'
+
 curl -X POST http://localhost:3000/api/webhooks/github \
   -H "Content-Type: application/json" \
   -H "X-GitHub-Event: pull_request" \
-  -H "X-Hub-Signature-256: sha256=$(echo -n '{"action":"closed","pull_request":{"merged":true,"number":1,"title":"Fix login bug","body":"Fixes the login redirect issue","user":{"login":"octocat"},"merged_at":"2026-01-01T00:00:00Z","base":{"repo":{"id":123,"full_name":"org/repo","name":"repo"}},"labels":[]}}' | openssl dgst -sha256 -hmac "$GITHUB_APP_WEBHOOK_SECRET" | awk '{print $2}')" \
-  -d '{"action":"closed","pull_request":{"merged":true,"number":1,"title":"Fix login bug","body":"Fixes the login redirect issue","user":{"login":"octocat"},"merged_at":"2026-01-01T00:00:00Z","base":{"repo":{"id":123,"full_name":"org/repo","name":"repo"}},"labels":[]}}'
+  -H "X-Hub-Signature-256: sha256=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "WEBHOOK_SECRET" | awk '{print $2}')" \
+  -d "$PAYLOAD"
 ```
 
-Replace `$GITHUB_APP_WEBHOOK_SECRET` with your actual secret value.
+> The per-repo `webhook_secret` in the `repos` table is distinct from the app-level `GITHUB_APP_WEBHOOK_SECRET`. Each connected repo gets its own secret generated at connect time.
 
 ### Flow 3: Edit and publish an entry
 
 1. Click a draft entry in the dashboard
 2. Edit the title and body
 3. Click **Save draft** — should persist without page reload
-4. Click **Regenerate with AI** — should replace the body with a GPT-4o-generated version
+4. Click **Regenerate with AI** — should replace both the title and body with a GPT-4o-generated version
 5. Click **Publish** — entry moves to `status = 'published'`
 
 **Check the public changelog:** http://localhost:3000/`<your-workspace-slug>`  
@@ -443,11 +466,17 @@ The 6th request should return:
 5. Click **Manage subscription** → the Stripe customer portal opens
 6. Cancel the subscription — the plan should revert to **free** after the webhook fires
 
-### Flow 7: Widget embed
+### Flow 7: Widget embed and appearance
 
 1. Go to **Dashboard → Widget**
-2. Copy the `<script>` snippet shown
-3. Create a bare HTML file on your machine:
+2. Customise the widget appearance using the settings form:
+   - **Position:** bottom-right / bottom-left / top-right / top-left
+   - **Theme:** light or dark
+   - **Accent colour:** colour picker + hex input
+   - **Button label:** e.g. "What's new", "Updates", "Changelog"
+3. Click **Save changes** — the widget fetches these settings at runtime, no rebuild needed
+4. Copy the `<script>` snippet shown at the top
+5. Create a bare HTML file on your machine:
 
    ```html
    <!DOCTYPE html>
@@ -459,15 +488,15 @@ The 6th request should return:
    </html>
    ```
 
-4. Open the HTML file in a browser (or serve it with `npx serve .`)
-5. A "What's new" button should appear — clicking it shows the drawer with your published entries
+6. Open the HTML file in a browser (or serve it with `npx serve .`)
+7. The button should appear in the configured position and colour — clicking it shows the drawer with your published entries
 
 ### Flow 8: Cron endpoint
 
-Test the monthly quota-reset endpoint directly:
+Test the monthly quota-reset endpoint directly (it's a `GET`, not `POST` — Vercel Cron uses GET):
 
 ```bash
-curl -X POST http://localhost:3000/api/cron/reset-quotas \
+curl http://localhost:3000/api/cron/reset-quotas \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
 
@@ -476,7 +505,7 @@ Expected response: `{ "ok": true, "reset": <number> }`
 Test that it rejects invalid secrets:
 
 ```bash
-curl -X POST http://localhost:3000/api/cron/reset-quotas \
+curl http://localhost:3000/api/cron/reset-quotas \
   -H "Authorization: Bearer wrong-secret"
 ```
 
@@ -500,7 +529,7 @@ Expected: `401 Unauthorized`
 
 Before deploying, you need live (not local) versions of every service. Follow the steps in [`docs/superpowers/specs/2026-04-27-prelaunch-checklist.md`](superpowers/specs/2026-04-27-prelaunch-checklist.md) §2 for:
 
-- Supabase cloud project (run the 3 migrations via SQL editor)
+- Supabase cloud project (run all 4 migrations via SQL editor in order: 001 → 002 → 003 → 004)
 - Stripe live products and webhook endpoint
 - GitHub App pointing to `https://mergecast.co/api/webhooks/github`
 - Resend domain verification
@@ -577,7 +606,8 @@ All must pass with zero errors.
 
 **Auth**
 - [ ] Sign in with GitHub at `https://mergecast.co` → redirected to `/onboarding`
-- [ ] Complete onboarding → redirected to `/dashboard`
+- [ ] Complete onboarding: name workspace → install GitHub App → select repo → redirected to `/dashboard`
+- [ ] `repos` table has a row with `is_active = true` and non-null `webhook_id`
 
 **Core loop**
 - [ ] Merge a PR on a connected repo → draft appears in dashboard within 10 seconds
@@ -598,6 +628,7 @@ All must pass with zero errors.
 **Widget**
 - [ ] Embed snippet from `/dashboard/widget` loads on a test page
 - [ ] Published entries render in the drawer
+- [ ] Widget appearance settings (position, theme, colour, label) save and take effect without a rebuild
 
 **Public pages**
 - [ ] `https://mergecast.co/<slug>` → changelog renders
