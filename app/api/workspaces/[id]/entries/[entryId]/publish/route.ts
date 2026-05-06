@@ -2,12 +2,13 @@ import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/s
 import { checkPublishQuota } from '@/lib/quota'
 import { sendPublishEmail } from '@/lib/resend/email'
 import { NextResponse } from 'next/server'
+import { type Plan } from '@/lib/plans'
 
 type Params = { params: Promise<{ id: string; entryId: string }> }
 
 interface WorkspaceForPublish {
   id: string
-  plan: string
+  plan: Plan
   publish_count_this_month: number
   publish_quota_reset_at: string
   slug: string

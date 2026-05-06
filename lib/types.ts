@@ -1,8 +1,10 @@
+import { type Plan } from '@/lib/plans'
+
 export interface Workspace {
   id: string
   slug: string
   name: string
-  plan: string
+  plan: Plan
   publish_count_this_month: number
   publish_quota_reset_at: string
   logo_url?: string | null
