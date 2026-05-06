@@ -286,7 +286,7 @@ Local Supabase configures OAuth providers via `supabase/config.toml`, **not** th
 
    `supabase/config.toml` already wires these env vars into the GitHub provider — no Studio changes needed.
 
-> **Verify it worked:** open http://127.0.0.1:54323, go to Authentication → Providers. GitHub should show as **Enabled**.
+> **Verify it worked:** open http://localhost:3000 and click **Sign in with GitHub**. If it redirects to GitHub and back, the OAuth is configured correctly. The Studio UI for local providers varies by CLI version — don't rely on it as a check.
 
 ---
 
