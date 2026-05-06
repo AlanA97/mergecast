@@ -20,7 +20,7 @@ const csp = [
   `script-src 'self' 'unsafe-inline'${devScriptExtras}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${isDev ? ' http://127.0.0.1:54321 ws://127.0.0.1:54321' : ''}`,
   "font-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
