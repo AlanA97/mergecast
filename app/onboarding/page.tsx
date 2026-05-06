@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { slugify } from '@/lib/utils'
+import { Loader2, GitBranch, ExternalLink } from 'lucide-react'
+import type { GitHubAvailableRepo } from '@/app/api/workspaces/[id]/github/repos/route'
 
 type Step = 'workspace' | 'connect' | 'done'
 
@@ -23,6 +25,14 @@ export default function OnboardingPage() {
   const [slug, setSlug] = useState('')
   const [slugError, setSlugError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null)
+
+  // Connect step state
+  const [appInstalled, setAppInstalled] = useState(false)
+  const [availableRepos, setAvailableRepos] = useState<GitHubAvailableRepo[]>([])
+  const [loadingRepos, setLoadingRepos] = useState(false)
+  const [repoError, setRepoError] = useState<string | null>(null)
+  const [connectingRepoId, setConnectingRepoId] = useState<number | null>(null)
 
   function handleNameChange(value: string) {
     setName(value)
@@ -48,7 +58,47 @@ export default function OnboardingPage() {
       return
     }
 
+    const data = await res.json()
+    setWorkspaceId(data.workspace?.id ?? null)
     setStep('connect')
+  }
+
+  async function loadAvailableRepos(wsId: string) {
+    setLoadingRepos(true)
+    setRepoError(null)
+    const res = await fetch(`/api/workspaces/${wsId}/github/repos`)
+    setLoadingRepos(false)
+    if (!res.ok) {
+      setRepoError('Could not load repositories. Make sure the GitHub App is installed, then try again.')
+      return
+    }
+    const data = await res.json()
+    setAvailableRepos(data.repos ?? [])
+  }
+
+  async function handleInstalledClick() {
+    setAppInstalled(true)
+    if (workspaceId) {
+      await loadAvailableRepos(workspaceId)
+    }
+  }
+
+  async function connectRepo(repo: GitHubAvailableRepo) {
+    if (!workspaceId) return
+    setConnectingRepoId(repo.id)
+    const res = await fetch(`/api/workspaces/${workspaceId}/repos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        github_installation_id: repo.installation_id,
+        github_repo_id: repo.id,
+        full_name: repo.full_name,
+      }),
+    })
+    setConnectingRepoId(null)
+    if (res.ok) {
+      setStep('done')
+    }
   }
 
   function openGitHubApp() {
@@ -129,25 +179,119 @@ export default function OnboardingPage() {
             <div>
               <h1 className="text-2xl font-bold">Connect a GitHub repo</h1>
               <p className="text-muted-foreground text-sm mt-1">
-                Mergecast will listen for merged pull requests and draft release notes automatically.
+                Mergecast listens for merged pull requests and drafts release notes automatically.
               </p>
             </div>
-            <Button onClick={openGitHubApp} className="w-full" size="lg">
-              <GitHubIcon className="mr-2 h-4 w-4" />
-              Install GitHub App
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Opens GitHub in a new tab. Return here when done.
-            </p>
-            <Button variant="outline" className="w-full" onClick={() => setStep('done')}>
-              I&apos;ve installed it — continue
-            </Button>
-            <button
-              className="w-full text-sm text-muted-foreground underline"
-              onClick={() => setStep('done')}
-            >
-              Skip for now
-            </button>
+
+            {!appInstalled ? (
+              <>
+                <Button onClick={openGitHubApp} className="w-full" size="lg">
+                  <GitHubIcon className="mr-2 h-4 w-4" />
+                  Install GitHub App
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Opens GitHub in a new tab. Return here when done.
+                </p>
+                <Button variant="outline" className="w-full" onClick={handleInstalledClick}>
+                  I&apos;ve installed it — show repos
+                </Button>
+                <button
+                  className="w-full text-sm text-muted-foreground underline"
+                  onClick={() => setStep('done')}
+                >
+                  Skip for now
+                </button>
+              </>
+            ) : (
+              <>
+                {loadingRepos && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading repositories from GitHub…
+                  </div>
+                )}
+
+                {repoError && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-destructive">{repoError}</p>
+                    <a
+                      href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_SLUG}/installations/new`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm underline"
+                    >
+                      Open GitHub App install page
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => workspaceId && loadAvailableRepos(workspaceId)}
+                    >
+                      Try again
+                    </Button>
+                  </div>
+                )}
+
+                {!loadingRepos && !repoError && availableRepos.length === 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">No repositories found.</p>
+                    <a
+                      href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_SLUG}/installations/new`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm underline"
+                    >
+                      Grant access to repositories on GitHub
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => workspaceId && loadAvailableRepos(workspaceId)}
+                    >
+                      Refresh
+                    </Button>
+                  </div>
+                )}
+
+                {availableRepos.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Choose a repository to connect:</p>
+                    <div className="max-h-64 overflow-y-auto space-y-1.5">
+                      {availableRepos.map(repo => (
+                        <button
+                          key={repo.id}
+                          onClick={() => connectRepo(repo)}
+                          disabled={connectingRepoId === repo.id}
+                          className="w-full flex items-center justify-between rounded-md border bg-background px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors disabled:opacity-50"
+                        >
+                          <span className="flex items-center gap-2">
+                            <GitBranch className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span>{repo.full_name}</span>
+                            {repo.private && (
+                              <span className="text-xs text-muted-foreground">(private)</span>
+                            )}
+                          </span>
+                          {connectingRepoId === repo.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Connect →</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  className="w-full text-sm text-muted-foreground underline"
+                  onClick={() => setStep('done')}
+                >
+                  Skip for now
+                </button>
+              </>
+            )}
           </div>
         )}
 

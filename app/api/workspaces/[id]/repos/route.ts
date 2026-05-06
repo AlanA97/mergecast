@@ -61,8 +61,9 @@ export async function POST(
   const webhookSecret = generateToken(32)
 
   // Register webhook via GitHub API
+  let hookId: number
   try {
-    await registerWebhookForRepo(github_installation_id, owner, repo, webhookSecret)
+    hookId = await registerWebhookForRepo(github_installation_id, owner, repo, webhookSecret)
   } catch {
     return NextResponse.json({ error: 'Failed to register GitHub webhook' }, { status: 502 })
   }
@@ -76,6 +77,7 @@ export async function POST(
         full_name,
         github_installation_id,
         webhook_secret: webhookSecret,
+        webhook_id: hookId,
         is_active: true,
       },
       { onConflict: 'github_repo_id' }

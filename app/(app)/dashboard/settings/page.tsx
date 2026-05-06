@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { X, Lock } from 'lucide-react'
-import Link from "next/link";
+import { X, Lock, GitBranch, Plus, Loader2, ExternalLink } from 'lucide-react'
+import Link from "next/link"
+import type { GitHubAvailableRepo } from '@/app/api/workspaces/[id]/github/repos/route'
 
 interface Workspace {
   id: string
@@ -21,6 +22,12 @@ interface IgnoreRule {
 
 interface ChangelogSettings {
   show_powered_by: boolean
+}
+
+interface ConnectedRepo {
+  id: string
+  full_name: string
+  connected_at: string
 }
 
 const RULE_TYPE_LABELS: Record<string, string> = {
@@ -44,6 +51,15 @@ export default function SettingsPage() {
   const [changelogSettings, setChangelogSettings] = useState<ChangelogSettings | null>(null)
   const [savingBadge, setSavingBadge] = useState(false)
 
+  // Repositories
+  const [connectedRepos, setConnectedRepos] = useState<ConnectedRepo[]>([])
+  const [showRepoPanel, setShowRepoPanel] = useState(false)
+  const [availableRepos, setAvailableRepos] = useState<GitHubAvailableRepo[]>([])
+  const [loadingAvailable, setLoadingAvailable] = useState(false)
+  const [availableError, setAvailableError] = useState<string | null>(null)
+  const [connectingRepoId, setConnectingRepoId] = useState<number | null>(null)
+  const [disconnectingRepoId, setDisconnectingRepoId] = useState<string | null>(null)
+
   useEffect(() => {
     fetch('/api/workspaces')
       .then(r => r.json())
@@ -60,6 +76,10 @@ export default function SettingsPage() {
         fetch(`/api/workspaces/${ws.id}/changelog-settings`)
           .then(r => r.json())
           .then(d => setChangelogSettings(d.settings ?? null))
+        // Load connected repos
+        fetch(`/api/workspaces/${ws.id}/repos`)
+          .then(r => r.json())
+          .then(d => setConnectedRepos(d.repos ?? []))
       })
   }, [])
 
@@ -120,6 +140,61 @@ export default function SettingsPage() {
       setChangelogSettings(prev => prev ? { ...prev, show_powered_by: newValue } : prev)
     }
     setSavingBadge(false)
+  }
+
+  async function openRepoPanel() {
+    if (!workspace) return
+    setShowRepoPanel(true)
+    setAvailableError(null)
+    setLoadingAvailable(true)
+    const res = await fetch(`/api/workspaces/${workspace.id}/github/repos`)
+    setLoadingAvailable(false)
+    if (!res.ok) {
+      setAvailableError('Failed to load repositories. Make sure the GitHub App is installed.')
+      return
+    }
+    const data = await res.json()
+    setAvailableRepos(data.repos ?? [])
+  }
+
+  async function connectRepo(repo: GitHubAvailableRepo) {
+    if (!workspace) return
+    setConnectingRepoId(repo.id)
+    const res = await fetch(`/api/workspaces/${workspace.id}/repos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        github_installation_id: repo.installation_id,
+        github_repo_id: repo.id,
+        full_name: repo.full_name,
+      }),
+    })
+    setConnectingRepoId(null)
+    if (res.ok) {
+      const data = await res.json()
+      setConnectedRepos(prev => [...prev, data.repo])
+      setAvailableRepos(prev =>
+        prev.map(r => r.id === repo.id ? { ...r, already_connected: true } : r)
+      )
+    }
+  }
+
+  async function disconnectRepo(repoId: string) {
+    if (!workspace) return
+    setDisconnectingRepoId(repoId)
+    const res = await fetch(`/api/workspaces/${workspace.id}/repos/${repoId}`, { method: 'DELETE' })
+    setDisconnectingRepoId(null)
+    if (res.ok || res.status === 204) {
+      setConnectedRepos(prev => prev.filter(r => r.id !== repoId))
+      setAvailableRepos(prev =>
+        prev.map(r => {
+          const removed = connectedRepos.find(c => c.id === repoId)
+          return removed && r.full_name === removed.full_name
+            ? { ...r, already_connected: false }
+            : r
+        })
+      )
+    }
   }
 
   if (!workspace) return <div className="p-4 text-sm text-muted-foreground">Loading…</div>
@@ -186,6 +261,135 @@ export default function SettingsPage() {
           )}
         </div>
       )}
+
+      {/* Repositories */}
+      <div className="rounded-lg border p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">Repositories</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Connected repos send webhooks when PRs are merged.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" onClick={openRepoPanel}>
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Add repo
+          </Button>
+        </div>
+
+        {connectedRepos.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            No repositories connected yet.{' '}
+            <button className="underline" onClick={openRepoPanel}>Add one</button> to start generating changelog entries.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {connectedRepos.map(repo => (
+              <div key={repo.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                <span className="flex items-center gap-2">
+                  <GitBranch className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span>{repo.full_name}</span>
+                </span>
+                <button
+                  onClick={() => disconnectRepo(repo.id)}
+                  disabled={disconnectingRepoId === repo.id}
+                  className="text-muted-foreground hover:text-destructive ml-2 disabled:opacity-50"
+                  aria-label="Disconnect repo"
+                >
+                  {disconnectingRepoId === repo.id
+                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    : <X className="h-3.5 w-3.5" />
+                  }
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Available repos panel */}
+        {showRepoPanel && (
+          <div className="rounded-md border bg-muted/40 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Available repositories</p>
+              <button
+                onClick={() => setShowRepoPanel(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {loadingAvailable && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading from GitHub…
+              </div>
+            )}
+
+            {availableError && (
+              <div className="space-y-2">
+                <p className="text-xs text-destructive">{availableError}</p>
+                <a
+                  href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_SLUG}/installations/new`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs underline"
+                >
+                  Install the GitHub App
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
+
+            {!loadingAvailable && !availableError && availableRepos.length === 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">No repositories found.</p>
+                <a
+                  href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_SLUG}/installations/new`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs underline"
+                >
+                  Install the GitHub App to grant access
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
+
+            {availableRepos.length > 0 && (
+              <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                {availableRepos.map(repo => (
+                  <div key={repo.id} className="flex items-center justify-between rounded-md bg-background border px-3 py-2 text-sm">
+                    <span className="flex items-center gap-2">
+                      <GitBranch className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span>{repo.full_name}</span>
+                      {repo.private && (
+                        <span className="text-xs text-muted-foreground">(private)</span>
+                      )}
+                    </span>
+                    {repo.already_connected ? (
+                      <span className="text-xs text-muted-foreground">Connected</span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 text-xs px-2"
+                        disabled={connectingRepoId === repo.id}
+                        onClick={() => connectRepo(repo)}
+                      >
+                        {connectingRepoId === repo.id
+                          ? <Loader2 className="h-3 w-3 animate-spin" />
+                          : 'Connect'
+                        }
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* PR Ignore Rules */}
       <div className="rounded-lg border p-6 space-y-4">
