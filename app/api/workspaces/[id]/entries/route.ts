@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -11,6 +11,12 @@ export async function GET(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Explicit membership check — non-members get 403, not an empty 200
+  const service = createSupabaseServiceClient()
+  const { data: membership } = await service
+    .from('workspace_members').select('role').eq('workspace_id', workspaceId).eq('user_id', user.id).single()
+  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')

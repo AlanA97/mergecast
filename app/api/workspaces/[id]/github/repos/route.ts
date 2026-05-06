@@ -39,13 +39,28 @@ export async function GET(
     .eq('is_active', true)
   const connectedIds = new Set((connectedRepos ?? []).map(r => r.github_repo_id))
 
+  // The user's GitHub login is stored in auth metadata by Supabase's GitHub OAuth provider.
+  // We use it to filter installations to only those belonging to the user's account or
+  // organisations they administer — preventing cross-customer data leakage.
+  const githubLogin: string | undefined =
+    user.user_metadata?.user_name ?? user.user_metadata?.preferred_username
+
   try {
     const app = getGitHubApp()
 
-    // List all installations for this app (app-level JWT auth)
-    const { data: installations } = await app.octokit.request('GET /app/installations', {
+    const { data: allInstallations } = await app.octokit.request('GET /app/installations', {
       per_page: 100,
     })
+
+    // Filter to installations that belong to the authenticated user's account.
+    // Fall back to all installations only when GitHub login is unavailable (should not happen
+    // with GitHub OAuth, but prevents a hard failure).
+    const installations = githubLogin
+      ? allInstallations.filter(
+          (inst: { account: { login: string } | null }) =>
+            inst.account?.login === githubLogin
+        )
+      : allInstallations
 
     const repos: GitHubAvailableRepo[] = []
 

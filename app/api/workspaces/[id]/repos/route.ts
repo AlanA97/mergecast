@@ -1,5 +1,5 @@
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
-import { registerWebhookForRepo } from '@/lib/github/app'
+import { getGitHubApp, registerWebhookForRepo } from '@/lib/github/app'
 import { PLAN_LIMITS } from '@/lib/plans'
 import { generateToken } from '@/lib/utils'
 import { NextResponse } from 'next/server'
@@ -60,6 +60,17 @@ export async function POST(
   const [owner, repo] = full_name.split('/')
   const webhookSecret = generateToken(32)
 
+  // Verify that the github_installation_id is actually accessible to this app
+  // (prevents a member from registering a webhook under another customer's installation)
+  try {
+    const app = getGitHubApp()
+    await app.octokit.request('GET /app/installations/{installation_id}', {
+      installation_id: github_installation_id,
+    })
+  } catch {
+    return NextResponse.json({ error: 'Invalid GitHub installation' }, { status: 403 })
+  }
+
   // Register webhook via GitHub API
   let hookId: number
   try {
@@ -101,7 +112,13 @@ export async function GET(
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: repos } = await supabase
+  // Explicit membership check (consistent with POST)
+  const service = createSupabaseServiceClient()
+  const { data: membership } = await service
+    .from('workspace_members').select('role').eq('workspace_id', workspaceId).eq('user_id', user.id).single()
+  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { data: repos } = await service
     .from('repos')
     .select('*')
     .eq('workspace_id', workspaceId)

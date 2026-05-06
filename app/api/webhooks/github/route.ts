@@ -3,10 +3,20 @@ import { validateGitHubWebhookSignature, parsePullRequestEvent } from '@/lib/git
 import { shouldIgnorePR } from '@/lib/github/ignore-rules'
 import { generateChangelogDraft } from '@/lib/openai/generate-draft'
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
+import { createRateLimiter } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
+// Limit per-IP to 120 webhook deliveries per minute (well above any real repo's PR rate).
+// This prevents repo-ID enumeration by brute-forcing the endpoint.
+const limiter = createRateLimiter({ windowMs: 60_000, max: 120 })
+
 export async function POST(request: Request) {
+  const ip = (request.headers.get('x-forwarded-for') ?? 'unknown').split(',')[0].trim()
+  if (!limiter.check(ip)) {
+    return NextResponse.json({ ok: true }, { status: 429 })
+  }
+
   const rawBody = await request.text()
   const signature = request.headers.get('x-hub-signature-256') ?? ''
   const event = request.headers.get('x-github-event') ?? ''
@@ -45,7 +55,8 @@ export async function POST(request: Request) {
 
   const valid = await validateGitHubWebhookSignature(rawBody, signature, repo.webhook_secret)
   if (!valid) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+    // Return 200 (same as "repo not found") to avoid leaking whether a repo ID is connected.
+    return NextResponse.json({ ok: true })
   }
 
   // Idempotency pre-check (optimization: avoids calling OpenAI for duplicates)

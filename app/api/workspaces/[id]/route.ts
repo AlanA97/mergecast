@@ -15,9 +15,17 @@ export async function GET(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: workspace } = await supabase
+  const service = createSupabaseServiceClient()
+
+  // Explicit membership check (don't rely solely on implicit RLS)
+  const { data: membership } = await service
+    .from('workspace_members').select('role').eq('workspace_id', id).eq('user_id', user.id).single()
+  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  // stripe_customer_id is internal — never expose it to the client
+  const { data: workspace } = await service
     .from('workspaces')
-    .select('id, name, slug, plan, publish_count_this_month, publish_quota_reset_at, stripe_customer_id')
+    .select('id, name, slug, plan, publish_count_this_month, publish_quota_reset_at')
     .eq('id', id)
     .single()
 

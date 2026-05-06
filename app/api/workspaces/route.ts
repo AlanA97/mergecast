@@ -50,6 +50,10 @@ export async function POST(request: Request) {
   })
 
   if (wsError || !workspace) {
+    // Catch the unique-violation that fires when a concurrent request wins the slug race
+    if (wsError?.code === '23505') {
+      return NextResponse.json({ error: 'SLUG_TAKEN' }, { status: 409 })
+    }
     return NextResponse.json({ error: 'Failed to create workspace' }, { status: 500 })
   }
 

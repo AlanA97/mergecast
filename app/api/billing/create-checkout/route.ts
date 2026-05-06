@@ -3,6 +3,18 @@ import { getStripeClient } from '@/lib/stripe/client'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
+// Whitelist of accepted price IDs — prevents a client from substituting
+// arbitrary Stripe price IDs (e.g. from a test environment or a cheaper plan).
+function getAllowedPriceIds(): Set<string> {
+  return new Set(
+    [
+      process.env.STRIPE_PRICE_STARTER_MONTHLY,
+      process.env.STRIPE_PRICE_GROWTH_MONTHLY,
+      process.env.STRIPE_PRICE_SCALE_MONTHLY,
+    ].filter(Boolean) as string[]
+  )
+}
+
 const CheckoutSchema = z.object({
   workspace_id: z.string().uuid(),
   price_id: z.string().startsWith('price_'),
@@ -20,6 +32,12 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
 
   const { workspace_id, price_id } = parsed.data
+
+  // Validate price_id against the known set — reject anything else
+  if (!getAllowedPriceIds().has(price_id)) {
+    return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 })
+  }
+
   const service = createSupabaseServiceClient()
 
   const { data: membership } = await service

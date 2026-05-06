@@ -54,6 +54,12 @@ export async function POST(request: Request) {
 
   if (existing) {
     if (!existing.confirmed) {
+      // Refresh the token expiry each time we resend, so the link stays valid
+      const refreshedExpiry = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+      await service
+        .from('subscribers')
+        .update({ confirmation_token_expires_at: refreshedExpiry })
+        .eq('id', existing.id)
       await sendConfirmationEmail({
         email,
         workspaceName: workspace.name,
@@ -64,9 +70,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true })
   }
 
+  // Set a 72-hour expiry on the confirmation token
+  const tokenExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+
   const { data: subscriber } = await service
     .from('subscribers')
-    .insert({ workspace_id, email })
+    .insert({ workspace_id, email, confirmation_token_expires_at: tokenExpiresAt })
     .select()
     .single()
 

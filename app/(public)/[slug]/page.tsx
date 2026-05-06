@@ -56,11 +56,16 @@ export default async function PublicChangelogPage({
     .order('published_at', { ascending: false })
     .limit(50)
 
-  // Fire-and-forget: increment view counts for all visible entries
-  // Do NOT await — this must not block page render
+  // Fire-and-forget: increment view counts for all visible entries.
+  // Scoped to workspace_id so the SECURITY DEFINER function cannot touch
+  // entries belonging to other workspaces.
+  // Do NOT await — this must not block page render.
   if (entries && entries.length > 0) {
     void Promise.resolve(
-      service.rpc('increment_entry_views', { entry_ids: entries.map(e => e.id) })
+      service.rpc('increment_entry_views', {
+        entry_ids: entries.map(e => e.id),
+        p_workspace_id: workspace.id,
+      })
     ).catch(() => {
       // intentionally ignored — view count is best-effort
     })
