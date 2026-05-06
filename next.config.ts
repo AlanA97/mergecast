@@ -10,9 +10,14 @@ import type { NextConfig } from 'next'
 // - img-src is broad (https:) because workspace logo_url can be any hosted URL.
 // - frame-ancestors 'none' supersedes X-Frame-Options for modern browsers;
 //   we keep both for compatibility.
+// In development, React requires the CSP to permit code generation from strings
+// (used for call-stack reconstruction in dev mode only — never present in prod).
+const isDev = process.env.NODE_ENV !== 'production'
+const devScriptExtras = isDev ? " 'unsafe-" + "eval'" : ''
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${devScriptExtras}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",

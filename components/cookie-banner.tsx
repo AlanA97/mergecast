@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const CONSENT_KEY = 'mergecast_cookie_consent';
 
-function getInitialVisibility(): boolean {
-  if (typeof window === 'undefined') return false;
-  return !localStorage.getItem(CONSENT_KEY);
-}
-
 export function CookieBanner() {
-  const [visible, setVisible] = useState(getInitialVisibility);
+  // Always false on the server so the first client render matches — no hydration mismatch.
+  // useEffect runs only on the client after hydration to show the banner if needed.
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem(CONSENT_KEY)) {
+      setVisible(true);
+    }
+  }, []);
 
   if (!visible) return null;
 
