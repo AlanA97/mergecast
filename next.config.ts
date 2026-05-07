@@ -35,7 +35,18 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
 ]
 
+// In dev, if NEXT_PUBLIC_APP_URL points to a tunnel (e.g. ngrok), allow that
+// origin so Next.js doesn't block HMR / dev-resource requests from it.
+const devTunnelOrigins: string[] = []
+if (isDev && process.env.NEXT_PUBLIC_APP_URL) {
+  try {
+    const host: string = new URL(process.env.NEXT_PUBLIC_APP_URL).hostname
+    if (host !== 'localhost' && host !== '127.0.0.1') devTunnelOrigins.push(host)
+  } catch { /* ignore malformed URL */ }
+}
+
 const nextConfig: NextConfig = {
+  ...(devTunnelOrigins.length > 0 ? { allowedDevOrigins: devTunnelOrigins } : {}),
   async headers() {
     return [
       {

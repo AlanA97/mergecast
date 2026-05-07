@@ -5,6 +5,8 @@
 
   // Replaced at build time by esbuild define — see widget/build.ts
   const API_BASE = MERGECAST_API_URL
+  // Bypass ngrok browser-warning interstitial during local dev (ignored in production)
+  const EXTRA_HEADERS = { 'ngrok-skip-browser-warning': '1' }
 
   let entries: Array<{
     id: string
@@ -66,37 +68,57 @@
     const drawer = document.createElement('div')
     drawer.style.cssText = `display:none;position:absolute;bottom:${drawerBottom};top:${drawerTop};${isRight ? 'right:0' : 'left:0'};width:320px;max-height:480px;overflow-y:auto;background:${settings.theme === 'dark' ? '#1a1a1a' : '#fff'};color:${settings.theme === 'dark' ? '#fff' : '#111'};border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:16px;`
 
+    const changelogUrl = `${API_BASE}/${workspaceSlug}`
+    const isDark = settings.theme === 'dark'
+    const subtleColor = isDark ? 'rgba(255,255,255,0.5)' : '#888'
+    const borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+
     function renderEntries() {
       drawer.textContent = ''
       if (entries.length === 0) {
         const empty = document.createElement('p')
-        empty.style.cssText = 'font-size:13px;color:#888;text-align:center;padding:24px 0'
+        empty.style.cssText = `font-size:13px;color:${subtleColor};text-align:center;padding:24px 0`
         empty.textContent = 'No updates yet.'
         drawer.appendChild(empty)
-        return
-      }
-      entries.forEach(e => {
-        const item = document.createElement('div')
-        item.style.cssText = 'padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.08);'
-        const date = document.createElement('p')
-        date.style.cssText = 'font-size:11px;color:#888;margin:0 0 4px'
-        date.textContent = new Date(e.published_at).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
+      } else {
+        entries.forEach(e => {
+          const item = document.createElement('a')
+          item.href = changelogUrl
+          item.target = '_blank'
+          item.rel = 'noopener noreferrer'
+          item.style.cssText = `display:block;padding:12px 0;border-bottom:1px solid ${borderColor};text-decoration:none;color:inherit;cursor:pointer;`
+          const date = document.createElement('p')
+          date.style.cssText = `font-size:11px;color:${subtleColor};margin:0 0 4px`
+          date.textContent = new Date(e.published_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+          const title = document.createElement('p')
+          title.style.cssText = `font-size:14px;font-weight:600;margin:0 0 4px;color:${isDark ? '#fff' : '#111'};`
+          title.textContent = e.title ?? 'Update'
+          const body = document.createElement('p')
+          body.style.cssText = `font-size:13px;color:${isDark ? 'rgba(255,255,255,0.65)' : '#555'};margin:0`
+          const content = e.final_content ?? ''
+          body.textContent = content.length > 160 ? content.slice(0, 160) + '…' : content
+          item.appendChild(date)
+          item.appendChild(title)
+          item.appendChild(body)
+          drawer.appendChild(item)
         })
-        const title = document.createElement('p')
-        title.style.cssText = 'font-size:14px;font-weight:600;margin:0 0 4px'
-        title.textContent = e.title ?? 'Update'
-        const body = document.createElement('p')
-        body.style.cssText = 'font-size:13px;color:#555;margin:0'
-        const content = e.final_content ?? ''
-        body.textContent = content.length > 120 ? content.slice(0, 120) + '…' : content
-        item.appendChild(date)
-        item.appendChild(title)
-        item.appendChild(body)
-        drawer.appendChild(item)
-      })
+
+        // "View all" footer
+        const footer = document.createElement('div')
+        footer.style.cssText = 'padding:12px 0 2px;text-align:center;'
+        const viewAll = document.createElement('a')
+        viewAll.href = changelogUrl
+        viewAll.target = '_blank'
+        viewAll.rel = 'noopener noreferrer'
+        viewAll.style.cssText = `font-size:12px;color:${settings.accentColor};text-decoration:none;font-weight:500;`
+        viewAll.textContent = 'View all updates →'
+        footer.appendChild(viewAll)
+        drawer.appendChild(footer)
+      }
     }
 
     button.addEventListener('click', () => {

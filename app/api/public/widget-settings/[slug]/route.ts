@@ -1,5 +1,8 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
+import { WIDGET_CORS_HEADERS, widgetCorsResponse } from '@/lib/cors'
 import { NextResponse } from 'next/server'
+
+export function OPTIONS() { return widgetCorsResponse() }
 
 export async function GET(
   _request: Request,
@@ -14,7 +17,7 @@ export async function GET(
     .eq('slug', slug)
     .single()
 
-  if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404, headers: WIDGET_CORS_HEADERS })
 
   const { data: settings } = await service
     .from('widget_settings')
@@ -30,5 +33,5 @@ export async function GET(
       accent_color: '#000000',
       button_label: "What's new",
     },
-  })
+  }, { headers: WIDGET_CORS_HEADERS })
 }

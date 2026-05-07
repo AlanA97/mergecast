@@ -1,5 +1,8 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
+import { WIDGET_CORS_HEADERS, widgetCorsResponse } from '@/lib/cors'
 import { NextResponse } from 'next/server'
+
+export function OPTIONS() { return widgetCorsResponse() }
 
 export async function GET(
   _request: Request,
@@ -14,7 +17,7 @@ export async function GET(
     .eq('slug', slug)
     .single()
 
-  if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!workspace) return NextResponse.json({ error: 'Not found' }, { status: 404, headers: WIDGET_CORS_HEADERS })
 
   const { data: entries } = await service
     .from('changelog_entries')
@@ -26,6 +29,6 @@ export async function GET(
 
   return NextResponse.json(
     { workspace, entries: entries ?? [] },
-    { headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' } }
+    { headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300', ...WIDGET_CORS_HEADERS } }
   )
 }
