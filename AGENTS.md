@@ -33,7 +33,7 @@ Key integrations (all in `lib/`): **Supabase** (auth + DB + RLS), **OpenAI GPT-4
 - **Widget prebuild**: `bun run build` runs `build:widget` first; editing widget source requires `bun run build:widget` to see changes.
 - **GITHUB_APP_PRIVATE_KEY**: Must be base64-encoded PEM — decoded at runtime.
 - **Supabase clients**: Use `createSupabaseServerClient()` (cookie auth) for normal ops; `createSupabaseServiceClient()` (service role) for admin ops only — never expose service role key to client.
-- **Middleware**: `middleware.ts` (not proxy.ts) runs session refresh and auth redirects. Its matcher excludes widget, API webhooks, and cron routes to avoid breaking unauthenticated access.
+- **Proxy** (Next.js v16): `proxy.ts` at project root exports `proxy` (not `middleware`). The `middleware` file convention is deprecated in v16 — using `middleware.ts` will log a deprecation warning and may stop working. File runs session refresh and auth redirects; matcher excludes widget, API webhooks, and cron routes.
 - **Cron auth**: `GET /api/cron/reset-quotas` — Vercel Cron sends `Authorization: Bearer {CRON_SECRET}`; the route checks this header. Method is GET, not POST.
 - **Plan quotas**: Published entries per month are hard-enforced in `lib/quota.ts`; reset via Vercel cron on the 1st.
 - **Email subscriptions**: Double opt-in — subscribers are `confirmed = false` until they click the confirmation link. Confirmation tokens expire after 72 hours; re-submitting the subscribe form refreshes the expiry.
