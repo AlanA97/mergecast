@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 
@@ -6,7 +6,8 @@ export default async function SubscribersPage() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: membership } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data: membership } = await service
     .from('workspace_members')
     .select('workspaces(id)')
     .eq('user_id', user!.id)
@@ -15,8 +16,7 @@ export default async function SubscribersPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const workspaceId = (membership?.workspaces as any)?.id
-
-  const { data: subscribers, count } = await supabase
+  const { data: subscribers, count } = await service
     .from('subscribers')
     .select('*', { count: 'exact' })
     .eq('workspace_id', workspaceId)

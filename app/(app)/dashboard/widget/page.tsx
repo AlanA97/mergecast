@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { WidgetSettingsForm } from '@/components/dashboard/widget-settings-form'
 
 export default async function WidgetPage() {
@@ -7,7 +7,8 @@ export default async function WidgetPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { data: membership } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data: membership } = await service
     .from('workspace_members')
     .select('workspaces(id, slug)')
     .eq('user_id', user!.id)

@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { EntryEditor } from '@/components/dashboard/entry-editor'
 import { notFound } from 'next/navigation'
 
@@ -9,7 +9,8 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { data: membership } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data: membership } = await service
     .from('workspace_members')
     .select('workspaces(id, slug)')
     .eq('user_id', user!.id)
@@ -20,7 +21,7 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const workspace = membership.workspaces as any
 
-  const { data: entry } = await supabase
+  const { data: entry } = await service
     .from('changelog_entries')
     .select('*')
     .eq('id', entryId)
@@ -29,7 +30,7 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
 
   if (!entry) notFound()
 
-  const { count: subscriberCount } = await supabase
+  const { count: subscriberCount } = await service
     .from('subscribers')
     .select('*', { count: 'exact', head: true })
     .eq('workspace_id', workspace.id)

@@ -37,7 +37,7 @@ CREATE POLICY "workspace_member_update" ON workspaces
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE POLICY "own_memberships" ON workspace_members
-  FOR SELECT USING (user_id = auth.uid());
+  FOR SELECT USING (user_id = auth.uid()); -- rewritten in 006_rls_fixes.sql (per-row re-evaluation)
 
 CREATE POLICY "workspace_members_no_insert" ON workspace_members
   FOR INSERT WITH CHECK (false);
@@ -46,7 +46,7 @@ CREATE POLICY "workspace_members_no_update" ON workspace_members
   FOR UPDATE USING (false);
 
 CREATE POLICY "workspace_members_self_delete" ON workspace_members
-  FOR DELETE USING (user_id = auth.uid());
+  FOR DELETE USING (user_id = auth.uid()); -- rewritten in 006_rls_fixes.sql (per-row re-evaluation)
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- REPOS
@@ -66,7 +66,7 @@ CREATE POLICY "entries_member_all" ON changelog_entries
   FOR ALL USING (is_workspace_member(workspace_id));
 
 CREATE POLICY "entries_public_read" ON changelog_entries
-  FOR SELECT USING (status = 'published');
+  FOR SELECT USING (status = 'published'); -- dropped in 006_rls_fixes.sql (anon GraphQL exposure)
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- SUBSCRIBERS
@@ -78,7 +78,7 @@ CREATE POLICY "subscribers_member_read" ON subscribers
   FOR SELECT USING (is_workspace_member(workspace_id));
 
 CREATE POLICY "subscribers_public_insert" ON subscribers
-  FOR INSERT WITH CHECK (true);
+  FOR INSERT WITH CHECK (true); -- tightened in 006_rls_fixes.sql
 
 CREATE POLICY "subscribers_member_delete" ON subscribers
   FOR DELETE USING (is_workspace_member(workspace_id));

@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { EntryCard } from '@/components/dashboard/entry-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
@@ -6,8 +6,8 @@ import { ExternalLink, AlertTriangle } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
 async function getWorkspaceForUser(userId: string) {
-  const supabase = await createSupabaseServerClient()
-  const { data } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data } = await service
     .from('workspace_members')
     .select('workspaces(*)')
     .eq('user_id', userId)
@@ -18,8 +18,8 @@ async function getWorkspaceForUser(userId: string) {
 }
 
 async function getEntries(workspaceId: string, status?: string) {
-  const supabase = await createSupabaseServerClient()
-  let query = supabase
+  const service = createSupabaseServiceClient()
+  let query = service
     .from('changelog_entries')
     .select('*')
     .eq('workspace_id', workspaceId)

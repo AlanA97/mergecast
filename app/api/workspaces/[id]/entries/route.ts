@@ -24,7 +24,7 @@ export async function GET(
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '20') || 20, 50)
   const offset = (page - 1) * limit
 
-  let query = supabase
+  let query = service
     .from('changelog_entries')
     .select('*', { count: 'exact' })
     .eq('workspace_id', workspaceId)

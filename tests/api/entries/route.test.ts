@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: vi.fn(),
+  createSupabaseServiceClient: vi.fn(),
 }))
 
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { GET, PATCH } from '@/app/api/workspaces/[id]/entries/[entryId]/route'
 
 const MOCK_USER = { id: 'user-1' }
@@ -15,6 +16,7 @@ const MOCK_ENTRY = {
   final_content: 'We added dark mode.',
   status: 'draft',
 }
+const MOCK_MEMBERSHIP = { role: 'owner' }
 
 function makeParams(id = 'ws-1', entryId = 'entry-1') {
   return { params: Promise.resolve({ id, entryId }) }
@@ -22,26 +24,40 @@ function makeParams(id = 'ws-1', entryId = 'entry-1') {
 
 function makeSupabase({
   user = MOCK_USER as typeof MOCK_USER | null,
+  membership = MOCK_MEMBERSHIP as { role: string } | null,
   entry = MOCK_ENTRY as typeof MOCK_ENTRY | null,
   updateEntry = { ...MOCK_ENTRY, title: 'Updated' } as typeof MOCK_ENTRY | null,
   updateError = null as { message: string } | null,
 } = {}) {
-  return vi.mocked(createSupabaseServerClient).mockResolvedValue({
+  // Server client: auth only
+  vi.mocked(createSupabaseServerClient).mockResolvedValue({
     auth: { getUser: async () => ({ data: { user } }) },
-    from: () => ({
-      select: () => ({
-        eq: () => ({ eq: () => ({ single: () => Promise.resolve({ data: entry }) }) }),
-      }),
-      update: () => ({
-        eq: () => ({
+  } as any)
+
+  // Service client: membership check + data access
+  vi.mocked(createSupabaseServiceClient).mockReturnValue({
+    from: (table: string) => {
+      if (table === 'workspace_members') {
+        return {
+          select: () => ({ eq: () => ({ eq: () => ({ single: () => Promise.resolve({ data: membership }) }) }) }),
+        }
+      }
+      // changelog_entries
+      return {
+        select: () => ({
+          eq: () => ({ eq: () => ({ single: () => Promise.resolve({ data: entry }) }) }),
+        }),
+        update: () => ({
           eq: () => ({
-            select: () => ({
-              single: () => Promise.resolve({ data: updateEntry, error: updateError }),
+            eq: () => ({
+              select: () => ({
+                single: () => Promise.resolve({ data: updateEntry, error: updateError }),
+              }),
             }),
           }),
         }),
-      }),
-    }),
+      }
+    },
   } as any)
 }
 
@@ -54,6 +70,12 @@ describe('GET /api/workspaces/[id]/entries/[entryId]', () => {
     makeSupabase({ user: null })
     const res = await GET(new Request('http://localhost'), makeParams())
     expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when user is not a workspace member', async () => {
+    makeSupabase({ membership: null })
+    const res = await GET(new Request('http://localhost'), makeParams())
+    expect(res.status).toBe(403)
   })
 
   it('returns 404 when entry does not exist', async () => {
@@ -89,6 +111,12 @@ describe('PATCH /api/workspaces/[id]/entries/[entryId]', () => {
     makeSupabase({ user: null })
     const res = await PATCH(makePatch({ title: 'New' }), makeParams())
     expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when user is not a workspace member', async () => {
+    makeSupabase({ membership: null })
+    const res = await PATCH(makePatch({ title: 'New' }), makeParams())
+    expect(res.status).toBe(403)
   })
 
   it('returns 400 for invalid status value', async () => {

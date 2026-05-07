@@ -70,7 +70,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: memberships } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data: memberships } = await service
     .from('workspace_members')
     .select('workspace_id, role, workspaces(*)')
     .eq('user_id', user.id) as { data: Array<{ workspace_id: string; role: string; workspaces: Record<string, unknown> }> | null }

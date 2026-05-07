@@ -113,6 +113,8 @@ describe('GET /api/workspaces', () => {
   it('returns workspace list with role for authenticated user', async () => {
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       auth: { getUser: async () => ({ data: { user: MOCK_USER }, error: null }) },
+    } as any)
+    vi.mocked(createSupabaseServiceClient).mockReturnValue({
       from: () => ({
         select: () => ({
           eq: () =>
@@ -135,6 +137,8 @@ describe('GET /api/workspaces', () => {
   it('returns empty array when user has no workspaces', async () => {
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       auth: { getUser: async () => ({ data: { user: MOCK_USER }, error: null }) },
+    } as any)
+    vi.mocked(createSupabaseServiceClient).mockReturnValue({
       from: () => ({ select: () => ({ eq: () => Promise.resolve({ data: null }) }) }),
     } as any)
     const res = await GET()

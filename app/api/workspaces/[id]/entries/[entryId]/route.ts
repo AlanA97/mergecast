@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -12,7 +12,16 @@ export async function GET(_req: Request, { params }: Params) {
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: entry } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data: membership } = await service
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { data: entry } = await service
     .from('changelog_entries')
     .select('*')
     .eq('id', entryId)
@@ -41,7 +50,16 @@ export async function PATCH(request: Request, { params }: Params) {
   const parsed = UpdateEntrySchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
-  const { data: entry, error } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data: membership } = await service
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { data: entry, error } = await service
     .from('changelog_entries')
     .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq('id', entryId)

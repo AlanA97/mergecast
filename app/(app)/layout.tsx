@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import React from "react";
@@ -10,7 +10,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: memberships } = await supabase
+  const service = createSupabaseServiceClient()
+  const { data: memberships } = await service
     .from('workspace_members')
     .select('workspace_id, workspaces(id, name, slug, plan)')
     .eq('user_id', user.id)
