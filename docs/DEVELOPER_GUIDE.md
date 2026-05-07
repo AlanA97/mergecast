@@ -147,7 +147,9 @@ You need to create a GitHub App that listens for PR webhooks. This is separate f
    - **Webhook URL:** your ngrok URL + `/api/webhooks/github`  
      e.g. `https://abc123.ngrok.io/api/webhooks/github`
    - **Webhook secret:** pick a random string — paste it as `GITHUB_APP_WEBHOOK_SECRET`
-3. Under **Permissions → Repository**, set Pull requests to **Read-only**
+3. Under **Permissions → Repository**, set:
+   - **Pull requests** → **Read-only**
+   - **Webhooks** → **Read and write** ← required to register per-repo webhook listeners
 4. Under **Subscribe to events**, tick **Pull request**
 5. After saving, copy:
    - **App ID** (numeric, at the top of the settings page) → `GITHUB_APP_ID`
@@ -301,7 +303,9 @@ Local Supabase configures OAuth providers via `supabase/config.toml`, **not** th
 
    > **Why not just `supabase restart`?** The OAuth provider config is baked in at startup. If Supabase started without the env vars set, the GitHub provider has empty credentials and every sign-in attempt returns `missing redirect URI`. You must stop and start with the vars present.
 
-> **Verify it worked:** open http://localhost:3000 and click **Sign in with GitHub**. If it redirects to GitHub and back, the OAuth is configured correctly.
+> **Verify it worked:** open http://localhost:3000/signup and click **Continue with GitHub**. If it redirects to GitHub and back to `/dashboard` or `/onboarding`, OAuth is configured correctly.
+
+> **Troubleshooting — code lands at `http://localhost:3000/?code=...`:** Supabase fell back to `site_url` (root) because the `redirectTo` URL wasn't in its allowed list. The proxy catches this and forwards to `/api/auth/callback` automatically, so sign-in will still complete. To fix the root cause: (1) confirm `NEXT_PUBLIC_APP_URL=http://localhost:3000` is set in `.env.local`, (2) confirm `supabase/config.toml` `additional_redirect_urls` contains `http://localhost:3000/api/auth/callback`, and (3) restart Supabase with the GitHub OAuth env vars exported as shown above.
 
 ---
 
