@@ -73,19 +73,27 @@ export async function POST(request: Request) {
   // Set a 72-hour expiry on the confirmation token
   const tokenExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
 
-  const { data: subscriber } = await service
+  const { data: subscriber, error: insertError } = await service
     .from('subscribers')
     .insert({ workspace_id, email, confirmation_token_expires_at: tokenExpiresAt })
     .select()
     .single()
 
-  if (subscriber) {
+  if (insertError || !subscriber) {
+    console.error('[subscribe] Insert failed:', insertError)
+    return NextResponse.json({ error: 'Failed to save subscription' }, { status: 500 })
+  }
+
+  try {
     await sendConfirmationEmail({
       email,
       workspaceName: workspace.name,
       workspaceSlug: workspace.slug,
       token: subscriber.confirmation_token!,
     })
+  } catch (err) {
+    console.error('[subscribe] Email send failed:', err)
+    return NextResponse.json({ error: 'Failed to send confirmation email' }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })

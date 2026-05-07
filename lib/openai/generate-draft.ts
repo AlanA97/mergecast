@@ -32,13 +32,13 @@ export async function generateChangelogDraft(input: DraftInput): Promise<DraftOu
   const userMessage = `PR Title: ${input.prTitle}\nPR Description: ${input.prBody || '(none)'}`
 
   const response = await client.chat.completions.create({
-    model: 'gpt-5.4-mini',
+    model: process.env.OPENAI_MODEL,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userMessage },
     ],
     temperature: 0.4,
-    max_tokens: 300,
+    max_completion_tokens: 300,
   })
 
   const content = response.choices[0]?.message?.content ?? ''

@@ -497,7 +497,16 @@ The 6th request should return:
    </html>
    ```
 
-6. Open the HTML file in a browser (or serve it with `npx serve .`)
+6. **Serve** the file over HTTP — do **not** open it directly as `file://`. Chrome blocks cross-origin fetches from `null` origin (`file://`) even when the server sends `Access-Control-Allow-Origin: *`. Use any local server:
+
+   ```bash
+   npx serve .          # serves on http://localhost:3000 (or next free port)
+   # or
+   python3 -m http.server 8080   # serves on http://localhost:8080
+   ```
+
+   Then open the URL shown in the terminal (e.g. `http://localhost:8080/widget-test.html`).
+
 7. The button should appear in the configured position and colour — clicking it shows the drawer with your published entries
 
 ### Flow 8: Cron endpoint

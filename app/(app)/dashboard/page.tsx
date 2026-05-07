@@ -52,9 +52,6 @@ export default async function DashboardPage({
     getEntries(workspace.id, 'published'),
   ])
 
-  const entries =
-    activeTab === 'draft' ? drafts : activeTab === 'published' ? published : all
-
   // Approaching-limit banner logic
   const isFree = workspace.plan === 'free'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -109,25 +106,27 @@ export default async function DashboardPage({
           <TabsTrigger value="draft">Drafts ({drafts.length})</TabsTrigger>
           <TabsTrigger value="published">Published ({published.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value={activeTab}>
-          {entries.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-12 text-center">
-              <p className="text-muted-foreground text-sm">
-                {activeTab === 'draft'
-                  ? 'No drafts. Merge a PR to get started.'
-                  : activeTab === 'published'
-                    ? 'Nothing published yet.'
-                    : 'No entries yet. Connect a repo and merge a PR.'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {entries.map(entry => (
-                <EntryCard key={entry.id} entry={entry} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+        {(
+          [
+            { value: 'all',       data: all,       empty: 'No entries yet. Connect a repo and merge a PR.' },
+            { value: 'draft',     data: drafts,    empty: 'No drafts. Merge a PR to get started.' },
+            { value: 'published', data: published, empty: 'Nothing published yet.' },
+          ] as const
+        ).map(({ value, data, empty }) => (
+          <TabsContent key={value} value={value}>
+            {data.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-12 text-center">
+                <p className="text-muted-foreground text-sm">{empty}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {data.map(entry => (
+                  <EntryCard key={entry.id} entry={entry} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   )

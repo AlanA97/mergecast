@@ -38,6 +38,7 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
   const [regenerating, setRegenerating] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
+  const [regenMsg, setRegenMsg] = useState('')
 
   async function saveDraft() {
     setSaving(true)
@@ -72,13 +73,30 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
 
   async function regenerate() {
     setRegenerating(true)
-    const res = await fetch(`/api/workspaces/${workspaceId}/entries/${entry.id}/regenerate`, {
-      method: 'POST',
-    })
-    const data = await res.json()
-    if (data.entry?.ai_draft) setContent(data.entry.ai_draft)
-    if (data.entry?.title) setTitle(data.entry.title)
-    setRegenerating(false)
+    setRegenMsg('')
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/entries/${entry.id}/regenerate`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setRegenMsg(data.error ?? 'Failed to generate draft. Check your OpenAI API key.')
+        return
+      }
+      const newDraft = data.entry?.ai_draft ?? ''
+      const newTitle = data.entry?.title ?? ''
+      if (newDraft) {
+        setContent(newDraft)
+        setRegenMsg('Draft updated.')
+      } else {
+        setRegenMsg('AI found no user-facing changes in this PR. Edit the content manually.')
+      }
+      if (newTitle) setTitle(newTitle)
+    } catch {
+      setRegenMsg('Network error, could not reach the server.')
+    } finally {
+      setRegenerating(false)
+    }
   }
 
   async function archive() {
@@ -111,6 +129,11 @@ export function EntryEditor({ entry, workspaceId, subscriberCount }: EntryEditor
             onChange={e => setContent(e.target.value)}
             className="min-h-70 font-mono text-sm"
           />
+          {regenMsg && (
+            <p className={`text-sm ${regenMsg.startsWith('Draft updated') ? 'text-muted-foreground' : 'text-destructive'}`}>
+              {regenMsg}
+            </p>
+          )}
         </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <div className="flex flex-wrap items-center gap-2 pt-2">

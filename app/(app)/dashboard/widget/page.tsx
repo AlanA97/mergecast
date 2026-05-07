@@ -1,5 +1,6 @@
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { WidgetSettingsForm } from '@/components/dashboard/widget-settings-form'
+import { CopySnippet } from '@/components/dashboard/copy-snippet'
 
 export default async function WidgetPage() {
   const supabase = await createSupabaseServerClient()
@@ -31,9 +32,7 @@ export default async function WidgetPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border bg-muted p-4">
-        <pre className="text-xs overflow-auto whitespace-pre-wrap break-all">{snippet}</pre>
-      </div>
+      <CopySnippet snippet={snippet} />
 
       <WidgetSettingsForm workspaceId={workspaceId} />
     </div>

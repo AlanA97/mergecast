@@ -3,7 +3,8 @@
   const workspaceSlug = script?.getAttribute('data-workspace') ?? ''
   if (!workspaceSlug) return
 
-  const API_BASE = 'MERGECAST_API_URL'
+  // Replaced at build time by esbuild define — see widget/build.ts
+  const API_BASE = MERGECAST_API_URL
 
   let entries: Array<{
     id: string
@@ -15,7 +16,7 @@
 
   async function fetchEntries() {
     try {
-      const res = await fetch(`${API_BASE}/api/public/changelog/${workspaceSlug}`)
+      const res = await fetch(`${API_BASE}/api/public/changelog/${workspaceSlug}`, { headers: EXTRA_HEADERS })
       const data = await res.json()
       entries = data.entries ?? []
     } catch {
@@ -30,7 +31,7 @@
     buttonLabel: string
   }> {
     try {
-      const res = await fetch(`${API_BASE}/api/public/widget-settings/${workspaceSlug}`)
+      const res = await fetch(`${API_BASE}/api/public/widget-settings/${workspaceSlug}`, { headers: EXTRA_HEADERS })
       const data = await res.json()
       const s = data.settings
       return {

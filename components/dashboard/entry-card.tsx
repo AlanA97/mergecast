@@ -28,7 +28,7 @@ export function EntryCard({ entry }: EntryCardProps) {
   const date = entry.published_at ?? entry.created_at
 
   return (
-    <Link href={`/dashboard/entries/${entry.id}`}>
+    <Link href={`/dashboard/entries/${entry.id}`} className="block">
       <div className="flex items-center justify-between rounded-lg border bg-background p-4 hover:bg-muted/50 transition-colors cursor-pointer">
         <div className="space-y-1 min-w-0">
           <p className="font-medium text-sm truncate">{displayTitle}</p>
