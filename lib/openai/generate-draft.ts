@@ -31,25 +31,28 @@ export async function generateChangelogDraft(input: DraftInput): Promise<DraftOu
     input._client ?? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const userMessage = `PR Title: ${input.prTitle}\nPR Description: ${input.prBody || '(none)'}`
 
+  const response = await client.chat.completions.create({
+    model: 'gpt-5.4-mini',
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userMessage },
+    ],
+    temperature: 0.4,
+    max_tokens: 300,
+  })
+
+  const content = response.choices[0]?.message?.content ?? ''
+
+  let parsed: { title?: string; body?: string }
   try {
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMessage },
-      ],
-      temperature: 0.4,
-      max_tokens: 300,
-    })
-
-    const content = response.choices[0]?.message?.content ?? ''
-    const parsed = JSON.parse(content)
-
-    return {
-      title: parsed.title || input.prTitle,
-      body: parsed.body || '',
-    }
+    parsed = JSON.parse(content)
   } catch {
+    // Model returned non-JSON — fall back to PR title with no body
     return { title: input.prTitle, body: '' }
+  }
+
+  return {
+    title: parsed.title || input.prTitle,
+    body: parsed.body || '',
   }
 }
