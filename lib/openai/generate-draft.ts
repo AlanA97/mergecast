@@ -37,9 +37,13 @@ export async function generateReleaseNotesDraft(input: ReleaseDraftInput): Promi
   const client: ChatCompletionClient =
     input._client ?? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-  const prList = input.prs
+  // Cap at 50 PRs to stay within safe token limits; remainder is noted in the prompt
+  const MAX_PRS = 50
+  const truncated = input.prs.length > MAX_PRS
+  const prsToSend = input.prs.slice(0, MAX_PRS)
+  const prList = prsToSend
     .map((pr, i) => `PR ${i + 1}: ${pr.prTitle}\n${pr.prBody ? pr.prBody.slice(0, 300) : '(no description)'}`)
-    .join('\n\n')
+    .join('\n\n') + (truncated ? `\n\n(${input.prs.length - MAX_PRS} additional PRs omitted for brevity)` : '')
   const userMessage = `Tag: ${input.tagName}\n\nPull requests in this release:\n\n${prList}`
 
   const response = await client.chat.completions.create({

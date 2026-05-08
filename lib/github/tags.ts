@@ -1,5 +1,13 @@
 import type { Octokit } from '@octokit/rest'
 
+/**
+ * Allowlist for tag names stored in the DB and used to construct GitHub URLs.
+ * Permits semver, date-based, and slash-namespaced tags (e.g. v1.0.0, release/2024-01).
+ * Rejects anything containing shell metacharacters, whitespace, or angle brackets
+ * that could cause XSS if rendered unescaped or prompt injection if sent to OpenAI.
+ */
+export const TAG_NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9._\-/]{0,199}$/
+
 export interface TagPR {
   prNumber: number
   prTitle: string
@@ -21,9 +29,11 @@ export async function getPreviousTag(
   currentTagName: string
 ): Promise<string | null> {
   // GitHub returns tags newest-first (by tagger date / push order).
-  // We fetch up to 100 at a time and look for currentTagName, then return
-  // the next one.  For repos with >100 tags we paginate one extra page.
-  for (let page = 1; page <= 2; page++) {
+  // Paginate until we find currentTagName (up to MAX_TAG_PAGES × 100 = 1 000 tags).
+  const MAX_TAG_PAGES = 10
+  let lastTagOnPreviousPage: string | null = null
+
+  for (let page = 1; page <= MAX_TAG_PAGES; page++) {
     const { data: tags } = await octokit.rest.repos.listTags({
       owner,
       repo,
@@ -31,13 +41,26 @@ export async function getPreviousTag(
       page,
     })
     if (tags.length === 0) break
+
     const idx = tags.findIndex(t => t.name === currentTagName)
     if (idx !== -1) {
-      // The tag immediately after in the list (higher index = older)
-      const prev = tags[idx + 1]
-      return prev?.name ?? null
+      if (idx + 1 < tags.length) return tags[idx + 1].name
+      // currentTagName is the last entry on this page — the previous tag was
+      // the first entry on the *previous* page (captured in lastTagOnPreviousPage).
+      // But since tags are newest-first, the "previous" chronological tag is
+      // actually the next item in the list (older tag). If it's the last entry
+      // on this page, we need the first entry of the next page.
+      const { data: nextPage } = await octokit.rest.repos.listTags({
+        owner, repo, per_page: 1, page: page + 1,
+      })
+      return nextPage[0]?.name ?? null
     }
+
+    lastTagOnPreviousPage = tags[tags.length - 1].name
+    if (tags.length < 100) break // last page reached without finding current tag
   }
+  // Not found within pagination limit — treat as first tag (conservative fallback)
+  void lastTagOnPreviousPage
   return null
 }
 
@@ -91,10 +114,13 @@ export async function getPRsBetweenTags(
     })
   }
 
+  // Maximum PRs to include in a single release entry (OpenAI token safety + UX)
+  const MAX_PRS = 100
+  const MAX_PR_PAGES = 10
+
   if (baseTag === null) {
-    // First tag: collect all PRs merged up to headTagDate
-    let page = 1
-    while (true) {
+    // First tag: collect PRs merged up to headTagDate, bounded by MAX_PR_PAGES
+    for (let page = 1; page <= MAX_PR_PAGES && seen.size < MAX_PRS; page++) {
       const { data: list } = await octokit.rest.pulls.list({
         owner,
         repo,
@@ -112,10 +138,8 @@ export async function getPRsBetweenTags(
           addPR(pr)
         }
       }
-      // If the oldest PR on this page was already merged before headTagDate,
-      // earlier pages will only have even older PRs — stop.
+      // If none on this page fall within the window, earlier pages won't either
       if (!anyInRange || list.length < 100) break
-      page++
     }
   } else {
     // Normal case: compare baseTag...headTag

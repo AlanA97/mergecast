@@ -3,7 +3,7 @@ import { validateGitHubWebhookSignature, parsePullRequestEvent } from '@/lib/git
 import { shouldIgnorePR } from '@/lib/github/ignore-rules'
 import { generateChangelogDraft, generateReleaseNotesDraft } from '@/lib/openai/generate-draft'
 import { getInstallationOctokit } from '@/lib/github/app'
-import { getPreviousTag, getPRsBetweenTags } from '@/lib/github/tags'
+import { getPreviousTag, getPRsBetweenTags, TAG_NAME_REGEX } from '@/lib/github/tags'
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
 import { createRateLimiter } from '@/lib/rate-limit'
 
@@ -60,6 +60,8 @@ async function handlePullRequest(rawBody: string, signature: string): Promise<Ne
     .single()
 
   if (!repo || !repo.is_active) {
+    // Constant-time dummy HMAC comparison to prevent repo ID enumeration via timing
+    await validateGitHubWebhookSignature(rawBody, signature, 'dummy-constant-time-secret')
     return NextResponse.json({ ok: true })
   }
 
@@ -72,7 +74,7 @@ async function handlePullRequest(rawBody: string, signature: string): Promise<Ne
   // In tag-based mode, individual PR merges are intentionally skipped.
   // The tag push will aggregate them instead.
   if (repo.tag_based_mode) {
-    return NextResponse.json({ ok: true, skipped: 'tag_mode' })
+    return NextResponse.json({ ok: true })
   }
 
   // Idempotency pre-check (optimization: avoids calling OpenAI for duplicates)
@@ -139,7 +141,6 @@ interface CreatePayload {
   ref: string
   ref_type: string
   repository: { id: number; full_name: string }
-  // created_at is not in the webhook payload — we derive timing from the tag object
 }
 
 async function handleTagCreate(rawBody: string, signature: string): Promise<NextResponse> {
@@ -158,6 +159,13 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
   const tagName = payload.ref
   const githubRepoId = payload.repository?.id
 
+  // Validate tag name against allowlist before writing anything to the DB or
+  // constructing URLs. Rejects names with whitespace, angle brackets, or other
+  // characters that could cause XSS or prompt injection downstream.
+  if (!tagName || !TAG_NAME_REGEX.test(tagName)) {
+    return NextResponse.json({ ok: true })
+  }
+
   const service = createSupabaseServiceClient()
 
   // Only process repos in tag-based mode
@@ -168,6 +176,8 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
     .single()
 
   if (!repo || !repo.is_active || !repo.tag_based_mode) {
+    // Constant-time dummy HMAC comparison to prevent repo ID enumeration via timing
+    await validateGitHubWebhookSignature(rawBody, signature, 'dummy-constant-time-secret')
     return NextResponse.json({ ok: true })
   }
 
@@ -188,7 +198,13 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
     return NextResponse.json({ ok: true, duplicate: true })
   }
 
-  const [owner, repoName] = repo.full_name.split('/')
+  // Validate full_name format before splitting
+  const parts = repo.full_name.split('/')
+  const owner = parts[0]
+  const repoName = parts[1]
+  if (!owner || !repoName) {
+    return NextResponse.json({ error: 'Invalid repo full_name' }, { status: 500 })
+  }
 
   // Fetch PRs between previous tag and this one, then generate combined draft
   let draft = { title: tagName, body: '' }
@@ -197,8 +213,10 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
   try {
     const octokit = await getInstallationOctokit(repo.github_installation_id)
 
-    // Use current time as an upper bound since webhook fires right after tag creation
-    const headTagDate = new Date().toISOString()
+    // Fetch the actual tag creation timestamp from GitHub instead of relying
+    // on server clock — webhook delivery can be delayed by minutes, causing
+    // wrong PR attribution if we use new Date() as the upper bound.
+    const headTagDate = await getTagTimestamp(octokit, owner, repoName, tagName)
 
     const previousTag = await getPreviousTag(octokit, owner, repoName, tagName)
     let prs = await getPRsBetweenTags(octokit, owner, repoName, previousTag, tagName, headTagDate)
@@ -238,7 +256,7 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
     tag_name: tagName,
     pr_title: tagName,
     pr_body: null,
-    pr_url: `https://github.com/${repo.full_name}/releases/tag/${tagName}`,
+    pr_url: `https://github.com/${repo.full_name}/releases/tag/${encodeURIComponent(tagName)}`,
     pr_author: null,
     pr_merged_at: null,
     ai_draft: draft.body,
@@ -257,3 +275,42 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
   return NextResponse.json({ ok: true, ...(empty ? { empty: true } : {}) })
 }
 
+// ---------------------------------------------------------------------------
+// Helper: resolve actual tag creation timestamp from GitHub
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the ISO timestamp of when a tag was created.
+ * For annotated tags, uses the tagger date. For lightweight tags, uses the
+ * committer date of the tagged commit. Falls back to server time on error.
+ */
+async function getTagTimestamp(
+  octokit: Awaited<ReturnType<typeof getInstallationOctokit>>,
+  owner: string,
+  repo: string,
+  tagName: string
+): Promise<string> {
+  try {
+    const { data: ref } = await octokit.rest.git.getRef({ owner, repo, ref: `tags/${tagName}` })
+    if (ref.object.type === 'tag') {
+      // Annotated tag: the ref points to a tag object which has a tagger.date
+      const { data: tagObj } = await octokit.rest.git.getTag({
+        owner,
+        repo,
+        tag_sha: ref.object.sha,
+      })
+      return tagObj.tagger.date
+    } else {
+      // Lightweight tag: the ref points directly to a commit
+      const { data: commit } = await octokit.rest.repos.getCommit({
+        owner,
+        repo,
+        ref: ref.object.sha,
+      })
+      return commit.commit.committer?.date ?? new Date().toISOString()
+    }
+  } catch {
+    // Fallback to server time if GitHub API call fails
+    return new Date().toISOString()
+  }
+}

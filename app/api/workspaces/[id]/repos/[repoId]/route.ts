@@ -27,6 +27,8 @@ export async function PATCH(
     .eq('user_id', user.id)
     .single()
   if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  // Repo configuration changes require owner or admin role
+  if (membership.role === 'member') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { data: repo } = await service
     .from('repos')
@@ -56,7 +58,12 @@ export async function PATCH(
 
   // Sync GitHub webhook events — if this fails, roll back the DB change
   if (repo.webhook_id) {
-    const [owner, repoName] = repo.full_name.split('/')
+    const parts = repo.full_name.split('/')
+    const owner = parts[0]
+    const repoName = parts[1]
+    if (!owner || !repoName) {
+      return NextResponse.json({ error: 'Invalid repo full_name' }, { status: 500 })
+    }
     const events = tag_based_mode ? ['pull_request', 'create'] : ['pull_request']
     try {
       await updateWebhookEventsForRepo(
