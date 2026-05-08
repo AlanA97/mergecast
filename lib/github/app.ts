@@ -51,6 +51,17 @@ export async function registerWebhookForRepo(
   return data.id
 }
 
+export async function updateWebhookEventsForRepo(
+  installationId: number,
+  owner: string,
+  repo: string,
+  hookId: number,
+  events: string[]
+): Promise<void> {
+  const octokit = await getInstallationOctokit(installationId)
+  await octokit.rest.repos.updateWebhook({ owner, repo, hook_id: hookId, events })
+}
+
 export async function deleteWebhookForRepo(
   installationId: number,
   owner: string,
