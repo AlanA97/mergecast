@@ -333,12 +333,12 @@ bun run test -- --reporter=verbose subscribe
 
 ### What the tests cover
 
-| File                                        | Covers                                           |
-|---------------------------------------------|--------------------------------------------------|
-| `tests/lib/plans.test.ts`                   | Plan limits, price ID mapping                    |
-| `tests/lib/quota.test.ts`                   | Quota enforcement, per-month reset logic         |
-| `tests/lib/github/webhook.test.ts`          | PR payload parsing, signature validation         |
-| `tests/lib/github/ignore-rules.test.ts`     | Rule matching (title prefix, contains, label)    |
+| File                                        | Covers                                             |
+|---------------------------------------------|----------------------------------------------------|
+| `tests/lib/plans.test.ts`                   | Plan limits, price ID mapping                      |
+| `tests/lib/quota.test.ts`                   | Quota enforcement, per-month reset logic           |
+| `tests/lib/github/webhook.test.ts`          | PR payload parsing, signature validation           |
+| `tests/lib/github/ignore-rules.test.ts`     | Rule matching (title prefix, contains, label)      |
 | `tests/lib/openai/generate-draft.test.ts`   | AI draft generation (PR + tag-based release notes) |
 | `tests/lib/github/tags.test.ts`             | TAG_NAME_REGEX, getPreviousTag, getPRsBetweenTags  |
 | `tests/lib/stripe/webhooks.test.ts`         | Stripe event handling                              |
