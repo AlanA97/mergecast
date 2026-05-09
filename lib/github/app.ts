@@ -51,6 +51,22 @@ export async function registerWebhookForRepo(
   return data.id
 }
 
+const ALLOWED_WEBHOOK_EVENTS = new Set(['pull_request', 'create'])
+
+export async function updateWebhookEventsForRepo(
+  installationId: number,
+  owner: string,
+  repo: string,
+  hookId: number,
+  events: string[]
+): Promise<void> {
+  if (!events.every(e => ALLOWED_WEBHOOK_EVENTS.has(e))) {
+    throw new Error(`Invalid webhook event type — allowed: ${[...ALLOWED_WEBHOOK_EVENTS].join(', ')}`)
+  }
+  const octokit = await getInstallationOctokit(installationId)
+  await octokit.rest.repos.updateWebhook({ owner, repo, hook_id: hookId, events })
+}
+
 export async function deleteWebhookForRepo(
   installationId: number,
   owner: string,

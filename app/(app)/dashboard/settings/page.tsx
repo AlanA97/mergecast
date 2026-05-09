@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { X, Lock, GitBranch, Plus, Loader2, ExternalLink } from 'lucide-react'
+import { X, Lock, GitBranch, Plus, Loader2, ExternalLink, Tag } from 'lucide-react'
 import Link from "next/link"
 import type { GitHubAvailableRepo } from '@/app/api/workspaces/[id]/github/repos/route'
 
@@ -28,6 +28,7 @@ interface ConnectedRepo {
   id: string
   full_name: string
   connected_at: string
+  tag_based_mode: boolean
 }
 
 const RULE_TYPE_LABELS: Record<string, string> = {
@@ -59,6 +60,8 @@ export default function SettingsPage() {
   const [availableError, setAvailableError] = useState<string | null>(null)
   const [connectingRepoId, setConnectingRepoId] = useState<number | null>(null)
   const [disconnectingRepoId, setDisconnectingRepoId] = useState<string | null>(null)
+  const [togglingTagMode, setTogglingTagMode] = useState<string | null>(null)
+  const [tagModeError, setTagModeError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/workspaces')
@@ -179,6 +182,26 @@ export default function SettingsPage() {
     }
   }
 
+  async function toggleTagMode(repo: ConnectedRepo) {
+    if (!workspace) return
+    setTogglingTagMode(repo.id)
+    setTagModeError(null)
+    const res = await fetch(`/api/workspaces/${workspace.id}/repos/${repo.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tag_based_mode: !repo.tag_based_mode }),
+    })
+    setTogglingTagMode(null)
+    if (res.ok) {
+      const data = await res.json()
+      setConnectedRepos(prev =>
+        prev.map(r => r.id === repo.id ? { ...r, tag_based_mode: data.repo.tag_based_mode } : r)
+      )
+    } else {
+      setTagModeError('Failed to update webhook — please try again.')
+    }
+  }
+
   async function disconnectRepo(repoId: string) {
     if (!workspace) return
     setDisconnectingRepoId(repoId)
@@ -285,25 +308,62 @@ export default function SettingsPage() {
         ) : (
           <div className="space-y-2">
             {connectedRepos.map(repo => (
-              <div key={repo.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                <span className="flex items-center gap-2">
-                  <GitBranch className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span>{repo.full_name}</span>
-                </span>
-                <button
-                  onClick={() => disconnectRepo(repo.id)}
-                  disabled={disconnectingRepoId === repo.id}
-                  className="text-muted-foreground hover:text-destructive ml-2 disabled:opacity-50"
-                  aria-label="Disconnect repo"
-                >
-                  {disconnectingRepoId === repo.id
-                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    : <X className="h-3.5 w-3.5" />
-                  }
-                </button>
+              <div key={repo.id} className="rounded-md border text-sm">
+                {/* Repo name row */}
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="flex items-center gap-2">
+                    <GitBranch className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span>{repo.full_name}</span>
+                  </span>
+                  <button
+                    onClick={() => disconnectRepo(repo.id)}
+                    disabled={disconnectingRepoId === repo.id}
+                    className="text-muted-foreground hover:text-destructive ml-2 disabled:opacity-50"
+                    aria-label="Disconnect repo"
+                  >
+                    {disconnectingRepoId === repo.id
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <X className="h-3.5 w-3.5" />
+                    }
+                  </button>
+                </div>
+                {/* Tag mode toggle row */}
+                <div className="flex items-center justify-between border-t px-3 py-2 bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium">Tag-based mode</p>
+                      <p className="text-xs text-muted-foreground">
+                        {repo.tag_based_mode
+                          ? 'One entry per Git tag — aggregates all PRs in the release'
+                          : 'One entry per merged PR'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => toggleTagMode(repo)}
+                    disabled={togglingTagMode === repo.id}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                      repo.tag_based_mode ? 'bg-foreground' : 'bg-muted'
+                    } ${togglingTagMode === repo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    role="switch"
+                    aria-checked={repo.tag_based_mode}
+                  >
+                    {togglingTagMode === repo.id
+                      ? <Loader2 className="h-3 w-3 animate-spin text-white absolute left-1/2 -translate-x-1/2" />
+                      : <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          repo.tag_based_mode ? 'translate-x-[18px]' : 'translate-x-0.5'
+                        }`} />
+                    }
+                  </button>
+                </div>
               </div>
             ))}
           </div>
+        )}
+
+        {tagModeError && (
+          <p className="text-xs text-destructive">{tagModeError}</p>
         )}
 
         {/* Available repos panel */}

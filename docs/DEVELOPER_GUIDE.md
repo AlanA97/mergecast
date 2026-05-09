@@ -73,7 +73,7 @@ Keep these — you'll need them for the env file in the next step.
 supabase db reset
 ```
 
-`db reset` drops and recreates the local database, then runs all seven migrations in order:
+`db reset` drops and recreates the local database, then runs all eight migrations in order:
 
 ```
 supabase/migrations/001_schema.sql             # tables, indexes, constraints
@@ -83,6 +83,7 @@ supabase/migrations/004_repos_webhook_id.sql   # webhook_id column on repos
 supabase/migrations/005_security_fixes.sql     # scoped view-count RPC, token expiry column
 supabase/migrations/006_rls_fixes.sql          # tighten RLS, revoke anon/authenticated table access
 supabase/migrations/007_revoke_public_execute.sql  # revoke EXECUTE on internal functions from PUBLIC
+supabase/migrations/008_tag_based_mode.sql     # tag_based_mode on repos, tag_name on entries, unique index
 ```
 
 Re-run this command any time you want a clean slate.
@@ -149,8 +150,11 @@ You need to create a GitHub App that listens for PR webhooks. This is separate f
    - **Webhook secret:** pick a random string — paste it as `GITHUB_APP_WEBHOOK_SECRET`
 3. Under **Permissions → Repository**, set:
    - **Pull requests** → **Read-only**
+   - **Contents** → **Read-only** ← required to resolve tag timestamps for tag-based mode
    - **Webhooks** → **Read and write** ← required to register per-repo webhook listeners
-4. Under **Subscribe to events**, tick **Pull request**
+4. Under **Subscribe to events**, tick:
+   - **Pull request**
+   - **Create** ← required for tag-based mode (fires when a tag or branch is created)
 5. After saving, copy:
    - **App ID** (numeric, at the top of the settings page) → `GITHUB_APP_ID`
    - **App slug** (from the URL — `github.com/apps/<slug>`) → `NEXT_PUBLIC_GITHUB_APP_SLUG`
@@ -329,22 +333,24 @@ bun run test -- --reporter=verbose subscribe
 
 ### What the tests cover
 
-| File                                        | Covers                                           |
-|---------------------------------------------|--------------------------------------------------|
-| `tests/lib/plans.test.ts`                   | Plan limits, price ID mapping                    |
-| `tests/lib/quota.test.ts`                   | Quota enforcement, per-month reset logic         |
-| `tests/lib/github/webhook.test.ts`          | PR payload parsing, signature validation         |
-| `tests/lib/github/ignore-rules.test.ts`     | Rule matching (title prefix, contains, label)    |
-| `tests/lib/openai/generate-draft.test.ts`   | AI draft generation prompting                    |
-| `tests/lib/stripe/webhooks.test.ts`         | Stripe event handling                            |
-| `tests/api/auth/callback.test.ts`           | Auth callback open-redirect prevention           |
-| `tests/api/cron/reset-quotas.test.ts`       | Cron endpoint auth + quota reset                 |
-| `tests/api/entries/route.test.ts`           | Entry CRUD, IDOR checks                          |
-| `tests/api/public/subscribe.test.ts`        | Subscribe flow, rate limiting, limit enforcement |
-| `tests/api/public/publish.test.ts`          | Publish flow, quota checks                       |
-| `tests/api/public/rss.test.ts`              | RSS feed generation                              |
-| `tests/api/webhooks/webhook.test.ts`        | GitHub webhook end-to-end                        |
-| `tests/api/workspaces/ignore-rules.test.ts` | Ignore rule CRUD                                 |
+| File                                        | Covers                                             |
+|---------------------------------------------|----------------------------------------------------|
+| `tests/lib/plans.test.ts`                   | Plan limits, price ID mapping                      |
+| `tests/lib/quota.test.ts`                   | Quota enforcement, per-month reset logic           |
+| `tests/lib/github/webhook.test.ts`          | PR payload parsing, signature validation           |
+| `tests/lib/github/ignore-rules.test.ts`     | Rule matching (title prefix, contains, label)      |
+| `tests/lib/openai/generate-draft.test.ts`   | AI draft generation (PR + tag-based release notes) |
+| `tests/lib/github/tags.test.ts`             | TAG_NAME_REGEX, getPreviousTag, getPRsBetweenTags  |
+| `tests/lib/stripe/webhooks.test.ts`         | Stripe event handling                              |
+| `tests/api/auth/callback.test.ts`           | Auth callback open-redirect prevention             |
+| `tests/api/cron/reset-quotas.test.ts`       | Cron endpoint auth + quota reset                   |
+| `tests/api/entries/route.test.ts`           | Entry CRUD, IDOR checks                            |
+| `tests/api/repos-patch.test.ts`             | PATCH /repos/[repoId] — tag mode toggle + rollback |
+| `tests/api/public/subscribe.test.ts`        | Subscribe flow, rate limiting, limit enforcement   |
+| `tests/api/public/publish.test.ts`          | Publish flow, quota checks                         |
+| `tests/api/public/rss.test.ts`              | RSS feed generation                                |
+| `tests/api/webhook.test.ts`                 | GitHub webhook — pull_request and create events    |
+| `tests/api/workspaces/ignore-rules.test.ts` | Ignore rule CRUD                                   |
 
 ### Linting
 
@@ -423,6 +429,64 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 > The per-repo `webhook_secret` in the `repos` table is distinct from the app-level `GITHUB_APP_WEBHOOK_SECRET`. Each connected repo gets its own secret generated at connect time.
 
 > **Signature validation note:** The webhook handler returns `200 { ok: true }` for both unrecognised repo IDs and invalid signatures (uniform response to prevent repo-ID enumeration). A successful payload creates a `changelog_entries` row — that is the only confirmation that the signature was valid.
+
+### Flow 2b: Tag-based changelog mode
+
+Tag-based mode creates one changelog entry per Git tag instead of one entry per merged PR. Enable it per repo in **Settings → Repositories**.
+
+**Prerequisites:** Flow 1 completed; ngrok tunnel active; GitHub App has `Contents: Read-only` permission and subscribes to the `create` event (see §3 GitHub App setup above).
+
+#### Enable tag mode
+
+1. Go to **Dashboard → Settings → Repositories**
+2. Toggle **Tag-based mode** on for a connected repo
+3. The toggle calls `PATCH /api/workspaces/<id>/repos/<repoId>` which:
+   - Updates `repos.tag_based_mode = true` in the DB
+   - Updates the GitHub webhook subscription to include the `create` event
+
+**Check in Studio:** `repos.tag_based_mode` should be `true` for that row.
+
+**Check in GitHub:** Your repo → **Settings → Webhooks** → click the Mergecast webhook → confirm `create` is listed under *Events*.
+
+#### Test a tag push
+
+1. Merge a PR on the connected repo — **no new entry should appear** (PR mode is suppressed)
+2. Push a tag to the repo:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+3. Within ~5 seconds, a new `changelog_entries` row should appear with `tag_name = 'v1.0.0'` and `pr_number = null`
+4. The entry should show in the dashboard under **Drafts** with an AI-generated summary of all PRs merged since the previous tag
+
+**Shortcut — test without a real tag push:**
+
+```bash
+# Replace REPO_ID with the github_repo_id, WEBHOOK_SECRET with the row's webhook_secret
+PAYLOAD='{"ref":"v1.0.0","ref_type":"tag","repository":{"id":REPO_ID,"full_name":"org/repo"}}'
+
+curl -X POST http://localhost:3000/api/webhooks/github \
+  -H "Content-Type: application/json" \
+  -H "X-GitHub-Event: create" \
+  -H "X-Hub-Signature-256: sha256=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "WEBHOOK_SECRET" | awk '{print $2}')" \
+  -d "$PAYLOAD"
+```
+
+**Branch events are silently ignored** (only `ref_type: tag` is processed).
+
+#### Test regenerate for tag entries
+
+1. Click a tag-based draft entry in the dashboard
+2. Click **Regenerate with AI** — the route re-fetches PRs from GitHub between the previous tag and this one, then calls `generateReleaseNotesDraft` to produce updated copy
+
+#### Disable tag mode
+
+1. Toggle **Tag-based mode** off in Settings → Repositories
+2. Merge a PR — a new entry should appear again (PR mode restored)
+
+**Check in GitHub:** The webhook should no longer list the `create` event.
+
+---
 
 ### Flow 3: Edit and publish an entry
 
@@ -547,7 +611,7 @@ Expected: `401 Unauthorized`
 
 Before deploying, you need live (not local) versions of every service. Follow the steps in [`docs/superpowers/specs/2026-04-27-prelaunch-checklist.md`](superpowers/specs/2026-04-27-prelaunch-checklist.md) §2 for:
 
-- Supabase cloud project (run all 7 migrations via SQL editor in order: 001 → 002 → 003 → 004 → 005 → 006 → 007)
+- Supabase cloud project (run all 8 migrations via SQL editor in order: 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008)
 - Stripe live products and webhook endpoint
 - GitHub App pointing to `https://mergecast.co/api/webhooks/github`
 - Resend domain verification
@@ -632,6 +696,12 @@ All must pass with zero errors.
 - [ ] Edit and save draft
 - [ ] Regenerate with AI
 - [ ] Publish → appears on public changelog URL
+
+**Tag-based mode**
+- [ ] Enable tag mode in Settings → Repositories → GitHub webhook shows `create` event
+- [ ] Merge a PR → no new entry (suppressed in tag mode)
+- [ ] Push a tag → entry appears with `tag_name` set and AI-generated release notes
+- [ ] Disable tag mode → GitHub webhook reverts to `pull_request` only; merged PRs create entries again
 
 **Subscribers**
 - [ ] Subscribe on public changelog → confirmation email arrives (check Resend logs)

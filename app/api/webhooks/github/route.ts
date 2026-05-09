@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { validateGitHubWebhookSignature, parsePullRequestEvent } from '@/lib/github/webhook'
 import { shouldIgnorePR } from '@/lib/github/ignore-rules'
-import { generateChangelogDraft } from '@/lib/openai/generate-draft'
+import { generateChangelogDraft, generateReleaseNotesDraft } from '@/lib/openai/generate-draft'
+import { getInstallationOctokit } from '@/lib/github/app'
+import { getPreviousTag, getPRsBetweenTags, TAG_NAME_REGEX } from '@/lib/github/tags'
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
 import { createRateLimiter } from '@/lib/rate-limit'
 
@@ -21,10 +23,22 @@ export async function POST(request: Request) {
   const signature = request.headers.get('x-hub-signature-256') ?? ''
   const event = request.headers.get('x-github-event') ?? ''
 
-  if (event !== 'pull_request') {
-    return NextResponse.json({ ok: true })
+  if (event === 'pull_request') {
+    return handlePullRequest(rawBody, signature)
   }
 
+  if (event === 'create') {
+    return handleTagCreate(rawBody, signature)
+  }
+
+  return NextResponse.json({ ok: true })
+}
+
+// ---------------------------------------------------------------------------
+// pull_request handler
+// ---------------------------------------------------------------------------
+
+async function handlePullRequest(rawBody: string, signature: string): Promise<NextResponse> {
   let payload: unknown
   try {
     payload = JSON.parse(rawBody)
@@ -41,21 +55,25 @@ export async function POST(request: Request) {
 
   const { data: repo } = await service
     .from('repos')
-    .select('id, workspace_id, webhook_secret, is_active')
+    .select('id, workspace_id, webhook_secret, is_active, tag_based_mode')
     .eq('github_repo_id', pr.repoId)
     .single()
 
-  if (!repo) {
-    return NextResponse.json({ ok: true })
-  }
-
-  if (!repo.is_active) {
+  if (!repo || !repo.is_active) {
+    // Constant-time dummy HMAC comparison to prevent repo ID enumeration via timing
+    await validateGitHubWebhookSignature(rawBody, signature, 'dummy-constant-time-secret')
     return NextResponse.json({ ok: true })
   }
 
   const valid = await validateGitHubWebhookSignature(rawBody, signature, repo.webhook_secret)
   if (!valid) {
     // Return 200 (same as "repo not found") to avoid leaking whether a repo ID is connected.
+    return NextResponse.json({ ok: true })
+  }
+
+  // In tag-based mode, individual PR merges are intentionally skipped.
+  // The tag push will aggregate them instead.
+  if (repo.tag_based_mode) {
     return NextResponse.json({ ok: true })
   }
 
@@ -112,4 +130,187 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true })
+}
+
+// ---------------------------------------------------------------------------
+// create (tag push) handler
+// ---------------------------------------------------------------------------
+
+// GitHub create event payload shape (relevant fields only)
+interface CreatePayload {
+  ref: string
+  ref_type: string
+  repository: { id: number; full_name: string }
+}
+
+async function handleTagCreate(rawBody: string, signature: string): Promise<NextResponse> {
+  let payload: CreatePayload
+  try {
+    payload = JSON.parse(rawBody) as CreatePayload
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  // Only process tag creation (not branch creation)
+  if (payload.ref_type !== 'tag') {
+    return NextResponse.json({ ok: true })
+  }
+
+  const tagName = payload.ref
+  const githubRepoId = payload.repository?.id
+
+  // Validate tag name against allowlist before writing anything to the DB or
+  // constructing URLs. Rejects names with whitespace, angle brackets, or other
+  // characters that could cause XSS or prompt injection downstream.
+  if (!tagName || !TAG_NAME_REGEX.test(tagName)) {
+    return NextResponse.json({ ok: true })
+  }
+
+  const service = createSupabaseServiceClient()
+
+  // Only process repos in tag-based mode
+  const { data: repo } = await service
+    .from('repos')
+    .select('id, workspace_id, webhook_secret, is_active, tag_based_mode, full_name, github_installation_id')
+    .eq('github_repo_id', githubRepoId)
+    .single()
+
+  if (!repo || !repo.is_active || !repo.tag_based_mode) {
+    // Constant-time dummy HMAC comparison to prevent repo ID enumeration via timing
+    await validateGitHubWebhookSignature(rawBody, signature, 'dummy-constant-time-secret')
+    return NextResponse.json({ ok: true })
+  }
+
+  const valid = await validateGitHubWebhookSignature(rawBody, signature, repo.webhook_secret)
+  if (!valid) {
+    return NextResponse.json({ ok: true })
+  }
+
+  // Idempotency: one entry per tag per repo
+  const { data: existing } = await service
+    .from('changelog_entries')
+    .select('id')
+    .eq('repo_id', repo.id)
+    .eq('tag_name', tagName)
+    .single()
+
+  if (existing) {
+    return NextResponse.json({ ok: true, duplicate: true })
+  }
+
+  // Validate full_name format before splitting
+  const parts = repo.full_name.split('/')
+  const owner = parts[0]
+  const repoName = parts[1]
+  if (!owner || !repoName) {
+    return NextResponse.json({ error: 'Invalid repo full_name' }, { status: 500 })
+  }
+
+  // Fetch PRs between previous tag and this one, then generate combined draft
+  let draft = { title: tagName, body: '' }
+  let empty = false
+
+  try {
+    const octokit = await getInstallationOctokit(repo.github_installation_id)
+
+    // Fetch the actual tag creation timestamp from GitHub instead of relying
+    // on server clock — webhook delivery can be delayed by minutes, causing
+    // wrong PR attribution if we use new Date() as the upper bound.
+    const headTagDate = await getTagTimestamp(octokit, owner, repoName, tagName)
+
+    const previousTag = await getPreviousTag(octokit, owner, repoName, tagName)
+    let prs = await getPRsBetweenTags(octokit, owner, repoName, previousTag, tagName, headTagDate)
+
+    // Apply workspace ignore rules to each PR
+    const { data: ignoreRules } = await service
+      .from('pr_ignore_rules')
+      .select('rule_type, pattern')
+      .eq('workspace_id', repo.workspace_id)
+
+    if (ignoreRules) {
+      prs = prs.filter(pr => !shouldIgnorePR(pr.prTitle, pr.labels, ignoreRules))
+    }
+
+    if (prs.length === 0) {
+      empty = true
+    } else {
+      draft = await generateReleaseNotesDraft({
+        tagName,
+        prs: prs.map(p => ({ prTitle: p.prTitle, prBody: p.prBody })),
+      })
+      // If AI returns empty (infra-only release), keep tagName as title
+      if (!draft.title) draft.title = tagName
+    }
+  } catch {
+    // Non-fatal — create entry with placeholder so user can regenerate
+    draft = {
+      title: tagName,
+      body: 'Draft generation failed — please click Regenerate to try again.',
+    }
+  }
+
+  const { error: insertError } = await service.from('changelog_entries').insert({
+    workspace_id: repo.workspace_id,
+    repo_id: repo.id,
+    pr_number: null,
+    tag_name: tagName,
+    pr_title: tagName,
+    pr_body: null,
+    pr_url: `https://github.com/${repo.full_name}/releases/tag/${encodeURIComponent(tagName)}`,
+    pr_author: null,
+    pr_merged_at: null,
+    ai_draft: draft.body,
+    title: draft.title,
+    final_content: draft.body,
+    status: 'draft',
+  })
+
+  if (insertError) {
+    if (insertError.code === '23505') {
+      return NextResponse.json({ ok: true, duplicate: true })
+    }
+    return NextResponse.json({ error: 'Failed to create entry' }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true, ...(empty ? { empty: true } : {}) })
+}
+
+// ---------------------------------------------------------------------------
+// Helper: resolve actual tag creation timestamp from GitHub
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the ISO timestamp of when a tag was created.
+ * For annotated tags, uses the tagger date. For lightweight tags, uses the
+ * committer date of the tagged commit. Falls back to server time on error.
+ */
+async function getTagTimestamp(
+  octokit: Awaited<ReturnType<typeof getInstallationOctokit>>,
+  owner: string,
+  repo: string,
+  tagName: string
+): Promise<string> {
+  try {
+    const { data: ref } = await octokit.rest.git.getRef({ owner, repo, ref: `tags/${tagName}` })
+    if (ref.object.type === 'tag') {
+      // Annotated tag: the ref points to a tag object which has a tagger.date
+      const { data: tagObj } = await octokit.rest.git.getTag({
+        owner,
+        repo,
+        tag_sha: ref.object.sha,
+      })
+      return tagObj.tagger.date
+    } else {
+      // Lightweight tag: the ref points directly to a commit
+      const { data: commit } = await octokit.rest.repos.getCommit({
+        owner,
+        repo,
+        ref: ref.object.sha,
+      })
+      return commit.commit.committer?.date ?? new Date().toISOString()
+    }
+  } catch {
+    // Fallback to server time if GitHub API call fails
+    return new Date().toISOString()
+  }
 }
