@@ -160,14 +160,16 @@ CREATE TRIGGER trg_changelog_settings_updated_at
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Lock down EXECUTE on all internal functions
 --
--- PostgreSQL grants EXECUTE to PUBLIC by default. Revoking from PUBLIC removes
--- the privilege for all roles. service_role is a superuser-equivalent and
--- bypasses privilege checks, so it continues to work without an explicit grant.
+-- Supabase explicitly grants EXECUTE to anon and authenticated on all functions
+-- at project setup time, so revoking from PUBLIC alone is not enough — those
+-- direct role grants survive a REVOKE FROM PUBLIC. Both must be revoked.
+-- service_role is a superuser-equivalent and bypasses privilege checks, so it
+-- continues to work without an explicit grant.
 -- All of these functions are called exclusively via the service-role client
 -- in application code — they are never legitimately called via the REST API.
 -- ─────────────────────────────────────────────────────────────────────────────
 
-REVOKE EXECUTE ON FUNCTION is_workspace_member(uuid)                         FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION increment_entry_views(uuid[], uuid)               FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION increment_publish_count(uuid)                     FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION create_workspace_with_defaults(text, text, uuid)  FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION is_workspace_member(uuid)                        FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION increment_entry_views(uuid[], uuid)              FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION increment_publish_count(uuid)                    FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION create_workspace_with_defaults(text, text, uuid) FROM PUBLIC, anon, authenticated;
