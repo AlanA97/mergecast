@@ -54,7 +54,7 @@ export default function TermsPage() {
               <li>
                 <span className="font-medium text-foreground">AI-assisted drafting:</span> Mergecast uses
                 OpenAI&rsquo;s GPT-4o model to generate suggested changelog entry drafts from pull request
-                metadata. These are drafts only — you review, edit, and approve entries before publishing.
+                metadata. These are drafts only: you review, edit, and approve entries before publishing.
               </li>
               <li>
                 <span className="font-medium text-foreground">Public changelog pages:</span> Publish your
@@ -89,7 +89,7 @@ export default function TermsPage() {
               if you suspect unauthorized access to your account.
             </p>
             <p>
-              Each workspace has an owner — the user who created it or who was designated as owner. Workspace
+              Each workspace has an owner: the user who created it or who was designated as owner. Workspace
               owners control access to the workspace, connected repositories, and subscriber data. If you
               create a workspace for an organization, you are responsible for ensuring that all workspace
               members comply with these Terms.

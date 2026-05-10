@@ -119,7 +119,7 @@ const RELEASE_PAYLOAD = JSON.stringify({
 // pull_request event tests
 // ---------------------------------------------------------------------------
 
-describe('GitHub webhook — pull_request event', () => {
+describe('GitHub webhook - pull_request event', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   it('returns 200 when AI draft generation throws', async () => {
@@ -171,7 +171,7 @@ describe('GitHub webhook — pull_request event', () => {
 // release event (published) tests
 // ---------------------------------------------------------------------------
 
-describe('GitHub webhook — release event (published)', () => {
+describe('GitHub webhook - release event (published)', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   it('ignores release events with action != published (e.g. created draft)', async () => {
@@ -209,7 +209,7 @@ describe('GitHub webhook — release event (published)', () => {
   it('happy path: fetches PRs, generates release notes, inserts entry', async () => {
     makeServiceMock({ repo: BASE_TAG_REPO })
     ;(generateReleaseNotesDraft as ReturnType<typeof vi.fn>).mockResolvedValue({
-      title: 'v1.0.0 — First release',
+      title: 'v1.0.0 - First release',
       body: '- Added login\n- Added dashboard',
     })
     const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
@@ -234,7 +234,7 @@ describe('GitHub webhook — release event (published)', () => {
     makeServiceMock({ repo: BASE_TAG_REPO })
     ;(generateReleaseNotesDraft as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('OpenAI error'))
     const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
-    // Should still return 200 — entry created with fallback text
+    // Should still return 200 - entry created with fallback text
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ ok: true })
   })
@@ -270,7 +270,7 @@ describe('GitHub webhook — release event (published)', () => {
       repository: { id: 1, full_name: 'org/repo' },
     })
     const res = await POST(makeRequest(payload, 'release'))
-    // NaN guard fires — falls back to server time, processes normally
+    // NaN guard fires - falls back to server time, processes normally
     expect(res.status).toBe(200)
     expect(getPRsBetweenTags).toHaveBeenCalled()
   })

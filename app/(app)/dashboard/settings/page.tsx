@@ -198,7 +198,7 @@ export default function SettingsPage() {
         prev.map(r => r.id === repo.id ? { ...r, tag_based_mode: data.repo.tag_based_mode } : r)
       )
     } else {
-      setTagModeError('Failed to update webhook — please try again.')
+      setTagModeError('Failed to update webhook - please try again.')
     }
   }
 
@@ -335,7 +335,7 @@ export default function SettingsPage() {
                       <p className="text-xs font-medium">Tag-based mode</p>
                       <p className="text-xs text-muted-foreground">
                         {repo.tag_based_mode
-                          ? 'One entry per Git tag — aggregates all PRs in the release'
+                          ? 'One entry per Git tag, aggregates all PRs in the release'
                           : 'One entry per merged PR'}
                       </p>
                     </div>
@@ -456,13 +456,13 @@ export default function SettingsPage() {
         <div>
           <p className="font-medium">PR ignore rules</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            PRs matching any rule are silently skipped — no draft is created.
+            PRs matching any rule are silently skipped, no draft is created.
           </p>
         </div>
 
         {rules.length === 0 && (
           <p className="text-xs text-muted-foreground">
-            No rules yet — default rules are pre-configured when you connect your first repo.
+            No rules yet. Default rules are pre-configured when you connect your first repo.
           </p>
         )}
         {rules.length > 0 && (

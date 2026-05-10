@@ -47,12 +47,12 @@ export async function POST(request: Request) {
         break
 
       case 'invoice.payment_failed':
-        // Log but don't downgrade yet — Stripe retries 4 times over ~1 week
+        // Log but don't downgrade yet - Stripe retries 4 times over ~1 week
         console.warn(`Payment failed for customer: ${(event.data.object as Stripe.Invoice).customer}`)
         break
 
       default:
-        // Unknown event — acknowledge
+        // Unknown event - acknowledge
         break
     }
   } catch (err) {

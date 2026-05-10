@@ -69,7 +69,7 @@ export default function PrivacyPage() {
             <p>
               When you connect a GitHub repository to Mergecast, we receive webhook events from GitHub
               including pull request metadata (title, description, author, merged date, labels, and linked
-              commits). We do not store the full source code of your repositories — only the PR metadata
+              commits). We do not store the full source code of your repositories, only the PR metadata
               needed to generate changelog entries.
             </p>
 

@@ -27,7 +27,7 @@ const PLANS = [
 ]
 
 export async function GET() {
-  // Auth required — price IDs are internal config, not meant to be public
+  // Auth required - price IDs are internal config, not meant to be public
   const supabase = await createSupabaseServerClient()
   const {
     data: { user },

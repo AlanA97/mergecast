@@ -3,7 +3,7 @@
   const workspaceSlug = script?.getAttribute('data-workspace') ?? ''
   if (!workspaceSlug) return
 
-  // Replaced at build time by esbuild define — see widget/build.ts
+  // Replaced at build time by esbuild define - see widget/build.ts
   const API_BASE = MERGECAST_API_URL
   // Bypass ngrok browser-warning interstitial during local dev (ignored in production)
   const EXTRA_HEADERS = { 'ngrok-skip-browser-warning': '1' }
@@ -22,7 +22,7 @@
       const data = await res.json()
       entries = data.entries ?? []
     } catch {
-      /* silent fail — don't break host page */
+      /* silent fail - don't break host page */
     }
   }
 

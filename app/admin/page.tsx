@@ -31,7 +31,7 @@ export default async function AdminPage() {
     <div className="p-6 max-w-5xl space-y-8">
       <div>
         <h1 className="text-xl font-semibold">Admin</h1>
-        <p className="text-sm text-muted-foreground">Internal overview — not visible to users.</p>
+        <p className="text-sm text-muted-foreground">Internal overview, not visible to users.</p>
       </div>
 
       {/* Stats */}

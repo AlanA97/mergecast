@@ -138,10 +138,10 @@ describe('getPreviousTag', () => {
 })
 
 // ---------------------------------------------------------------------------
-// getPRsBetweenTags — normal case (baseTag provided)
+// getPRsBetweenTags - normal case (baseTag provided)
 // ---------------------------------------------------------------------------
 
-describe('getPRsBetweenTags — with baseTag', () => {
+describe('getPRsBetweenTags - with baseTag', () => {
   const HEAD_DATE = new Date('2024-01-15T00:00:00Z').toISOString()
 
   it('returns PRs associated with commits in the range', async () => {
@@ -194,10 +194,10 @@ describe('getPRsBetweenTags — with baseTag', () => {
 })
 
 // ---------------------------------------------------------------------------
-// getPRsBetweenTags — first tag (baseTag = null)
+// getPRsBetweenTags - first tag (baseTag = null)
 // ---------------------------------------------------------------------------
 
-describe('getPRsBetweenTags — no baseTag (first tag)', () => {
+describe('getPRsBetweenTags - no baseTag (first tag)', () => {
   const HEAD_DATE = new Date('2024-01-15T00:00:00Z').toISOString()
 
   it('collects all PRs merged before headTagDate', async () => {

@@ -11,7 +11,7 @@ import type { NextConfig } from 'next'
 // - frame-ancestors 'none' supersedes X-Frame-Options for modern browsers;
 //   we keep both for compatibility.
 // In development, React requires the CSP to permit code generation from strings
-// (used for call-stack reconstruction in dev mode only — never present in prod).
+// (used for call-stack reconstruction in dev mode only - never present in prod).
 const isDev = process.env.NODE_ENV !== 'production'
 const devScriptExtras = isDev ? " 'unsafe-" + "eval'" : ''
 

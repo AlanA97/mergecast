@@ -12,7 +12,7 @@ export async function GET(
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Explicit membership check — non-members get 403, not an empty 200
+  // Explicit membership check - non-members get 403, not an empty 200
   const service = createSupabaseServiceClient()
   const { data: membership } = await service
     .from('workspace_members').select('role').eq('workspace_id', workspaceId).eq('user_id', user.id).single()

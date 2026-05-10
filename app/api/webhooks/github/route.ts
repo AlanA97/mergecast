@@ -98,12 +98,12 @@ async function handlePullRequest(rawBody: string, signature: string): Promise<Ne
     return NextResponse.json({ ok: true, ignored: true })
   }
 
-  // AI draft generation — failures are non-fatal; we create the entry without a draft
+  // AI draft generation - failures are non-fatal; we create the entry without a draft
   let draft = { title: pr.prTitle, body: '' }
   try {
     draft = await generateChangelogDraft({ prTitle: pr.prTitle, prBody: pr.prBody })
   } catch {
-    // OpenAI unavailable — entry is created with empty draft; user can regenerate
+    // OpenAI unavailable - entry is created with empty draft; user can regenerate
   }
 
   const { error: insertError } = await service.from('changelog_entries').insert({
@@ -156,7 +156,7 @@ async function handleRelease(rawBody: string, signature: string): Promise<NextRe
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // Only process published releases — ignore created (draft), edited, deleted, etc.
+  // Only process published releases - ignore created (draft), edited, deleted, etc.
   if (payload.action !== 'published') {
     return NextResponse.json({ ok: true })
   }
@@ -251,10 +251,10 @@ async function handleRelease(rawBody: string, signature: string): Promise<NextRe
       if (!draft.title) draft.title = tagName
     }
   } catch {
-    // Non-fatal — create entry with placeholder so user can regenerate
+    // Non-fatal - create entry with placeholder so user can regenerate
     draft = {
       title: tagName,
-      body: 'Draft generation failed — please click Regenerate to try again.',
+      body: 'Draft generation failed - please click Regenerate to try again.',
     }
   }
 

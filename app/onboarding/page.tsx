@@ -193,7 +193,7 @@ export default function OnboardingPage() {
                   Opens GitHub in a new tab. Return here when done.
                 </p>
                 <Button variant="outline" className="w-full" onClick={handleInstalledClick}>
-                  I&apos;ve installed it — show repos
+                  I&apos;ve installed it - show repos
                 </Button>
                 <button
                   className="w-full text-sm text-muted-foreground underline"

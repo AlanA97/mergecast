@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: 'Mergecast',
     template: '%s · Mergecast',
   },
-  description: 'Turn merged GitHub pull requests into polished product changelogs — automatically. AI-written release notes, embeddable widget, and email subscribers.',
+  description: 'Turn merged GitHub pull requests into polished product changelogs, automatically. AI-written release notes, embeddable widget, and email subscribers.',
   metadataBase: new URL('https://mergecast.co'),
   openGraph: {
     siteName: 'Mergecast',

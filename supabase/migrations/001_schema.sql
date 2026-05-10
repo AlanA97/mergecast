@@ -2,7 +2,7 @@
 --
 -- Complete baseline schema for Mergecast.
 -- All tables are created with their final columns, constraints, CHECK rules,
--- and FK delete behaviours — no incremental patches needed.
+-- and FK delete behaviours - no incremental patches needed.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- WORKSPACES

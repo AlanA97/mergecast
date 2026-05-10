@@ -14,12 +14,12 @@ export function DashboardShell({ workspace, children }: DashboardShellProps) {
 
   return (
     <div className="flex h-screen">
-      {/* Desktop sidebar — always visible */}
+      {/* Desktop sidebar - always visible */}
       <div className="hidden md:flex">
         <Sidebar workspace={workspace} />
       </div>
 
-      {/* Mobile sidebar — slide-in overlay */}
+      {/* Mobile sidebar - slide-in overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           {/* Backdrop */}

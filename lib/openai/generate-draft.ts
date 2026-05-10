@@ -1,7 +1,7 @@
 import OpenAI from 'openai'
 
 export interface ChatCompletionClient {
-  // Narrow interface for testability — compatible with OpenAI client shape
+  // Narrow interface for testability - compatible with OpenAI client shape
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chat: { completions: { create: (params: any) => Promise<any> } }
 }
@@ -27,7 +27,7 @@ const RELEASE_SYSTEM_PROMPT = `You are a product writer for a SaaS company. Your
 
 Rules:
 - Write for end users, not developers. Avoid technical jargon like "refactor", "fix null pointer", "bump dependency".
-- Title: use the tag name followed by a short release headline (e.g. "v1.2.0 — Dark mode & faster search"). Keep it under 80 characters.
+- Title: use the tag name followed by a short release headline (e.g. "v1.2.0 - Dark mode & faster search"). Keep it under 80 characters.
 - Body: group changes thematically into 2–5 short bullet points. Each bullet describes one user-facing improvement (start each with "- ").
 - Omit dependency bumps, CI changes, internal refactors, and test-only changes entirely.
 - If ALL PRs are infrastructure-only with no user impact, return: {"title":"","body":""}
@@ -101,7 +101,7 @@ export async function generateChangelogDraft(input: DraftInput): Promise<DraftOu
   try {
     parsed = JSON.parse(content)
   } catch {
-    // Model returned non-JSON — fall back to PR title with no body
+    // Model returned non-JSON - fall back to PR title with no body
     return { title: input.prTitle, body: '' }
   }
 

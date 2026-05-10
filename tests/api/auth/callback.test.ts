@@ -60,7 +60,7 @@ describe('GET /api/auth/callback', () => {
     expect(res.headers.get('location')).toBe('http://localhost:3000/login?error=auth_failed')
   })
 
-  // Open redirect prevention — added when we fixed the next param validation
+  // Open redirect prevention - added when we fixed the next param validation
   it('rejects protocol-relative next param (//evil.com) and falls back to /dashboard', async () => {
     ;(createSupabaseServerClient as any).mockResolvedValue({
       auth: { exchangeCodeForSession: vi.fn().mockResolvedValue({ error: null }) },

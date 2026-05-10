@@ -56,7 +56,7 @@ export async function POST(_req: Request, { params }: Params) {
     try {
       const octokit = await getInstallationOctokit(repo.github_installation_id)
       const previousTag = await getPreviousTag(octokit, owner, repoName, entry.tag_name)
-      // Use current time as upper bound — regenerate is user-initiated so no delivery delay concern
+      // Use current time as upper bound - regenerate is user-initiated so no delivery delay concern
       const prsRaw = await getPRsBetweenTags(
         octokit, owner, repoName, previousTag, entry.tag_name, new Date().toISOString()
       )

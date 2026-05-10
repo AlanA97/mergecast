@@ -1,4 +1,4 @@
-# Mergecast — Developer Guide
+# Mergecast - Developer Guide
 
 > **Audience:** Developers setting up a local environment, testing the product, or deploying to production.
 
@@ -11,7 +11,7 @@
 3. [Environment Variables](#3-environment-variables)
 4. [Running the App Locally](#4-running-the-app-locally)
 5. [Testing](#5-testing)
-6. [Manual QA — Testing the Core Flows Locally](#6-manual-qa--testing-the-core-flows-locally)
+6. [Manual QA - Testing the Core Flows Locally](#6-manual-qa--testing-the-core-flows-locally)
 7. [Deploying to Production (Vercel)](#7-deploying-to-production-vercel)
 8. [Post-Deployment Verification](#8-post-deployment-verification)
 9. [Troubleshooting](#9-troubleshooting)
@@ -24,14 +24,14 @@ Install these before starting:
 
 | Tool               | Version | Install                                                       |
 |--------------------|---------|---------------------------------------------------------------|
-| Bun                | 1.3+    | https://bun.sh — `curl -fsSL https://bun.sh/install \| bash`  |
-| Node.js            | 20+     | https://nodejs.org or `nvm install 20` — runtime for Next.js  |
+| Bun                | 1.3+    | https://bun.sh - `curl -fsSL https://bun.sh/install \| bash`  |
+| Node.js            | 20+     | https://nodejs.org or `nvm install 20` - runtime for Next.js  |
 | Git                | any     | https://git-scm.com                                           |
 | Supabase CLI       | latest  | `bun install -g supabase`                                     |
 | Stripe CLI         | latest  | https://stripe.com/docs/stripe-cli                            |
-| ngrok (or similar) | any     | https://ngrok.com — needed to receive GitHub webhooks locally |
+| ngrok (or similar) | any     | https://ngrok.com - needed to receive GitHub webhooks locally |
 
-> **Why bun?** Bun is the package manager for this project — installs are ~5× faster than npm. Node.js is still used as the runtime (Bun as a Next.js 16 runtime has open compatibility issues).
+> **Why bun?** Bun is the package manager for this project - installs are ~5× faster than npm. Node.js is still used as the runtime (Bun as a Next.js 16 runtime has open compatibility issues).
 
 > **Why ngrok?** GitHub App webhooks require a public HTTPS URL. ngrok creates a tunnel from a public URL to your `localhost:3000` in one command.
 
@@ -65,7 +65,7 @@ DB URL:      postgresql://postgres:postgres@127.0.0.1:54322/postgres
 Studio URL:  http://127.0.0.1:54323
 ```
 
-Keep these — you'll need them for the env file in the next step.
+Keep these, you'll need them for the env file in the next step.
 
 ### 2.3 Run migrations
 
@@ -89,7 +89,7 @@ Re-run this command any time you want a clean slate.
 cp .env.example .env.local
 ```
 
-Now open `.env.local` and fill in each variable — see [§3 Environment Variables](#3-environment-variables) for what each one does and how to get it.
+Now open `.env.local` and fill in each variable - see [§3 Environment Variables](#3-environment-variables) for what each one does and how to get it.
 
 ---
 
@@ -99,10 +99,10 @@ Now open `.env.local` and fill in each variable — see [§3 Environment Variabl
 
 | Variable                               | Required | Dev source                | Description                                            |
 |----------------------------------------|----------|---------------------------|--------------------------------------------------------|
-| `NEXT_PUBLIC_APP_URL`                  | ✅        | `http://localhost:3000`   | Base URL — used in emails and redirect links           |
+| `NEXT_PUBLIC_APP_URL`                  | ✅        | `http://localhost:3000`   | Base URL - used in emails and redirect links           |
 | `NEXT_PUBLIC_SUPABASE_URL`             | ✅        | `supabase start` output   | Supabase project URL                                   |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅        | `supabase start` output   | Supabase anon key (safe to expose)                     |
-| `SUPABASE_SECRET_KEY`                  | ✅        | `supabase start` output   | Supabase service role key — **never expose to client** |
+| `SUPABASE_SECRET_KEY`                  | ✅        | `supabase start` output   | Supabase service role key - **never expose to client** |
 | `NEXT_PUBLIC_GITHUB_APP_SLUG`          | ✅        | GitHub App settings       | The URL slug of your GitHub App                        |
 | `GITHUB_APP_ID`                        | ✅        | GitHub App settings       | Numeric App ID                                         |
 | `GITHUB_APP_PRIVATE_KEY`               | ✅        | GitHub App → generate key | Base64-encoded PEM (see below)                         |
@@ -142,7 +142,7 @@ You need to create a GitHub App that listens for PR webhooks. This is separate f
    - **Homepage URL:** `http://localhost:3000`
    - **Webhook URL:** your ngrok URL + `/api/webhooks/github`  
      e.g. `https://abc123.ngrok.io/api/webhooks/github`
-   - **Webhook secret:** pick a random string — paste it as `GITHUB_APP_WEBHOOK_SECRET`
+   - **Webhook secret:** pick a random string - paste it as `GITHUB_APP_WEBHOOK_SECRET`
 3. Under **Permissions → Repository**, set:
    - **Pull requests** → **Read-only**
    - **Contents** → **Read-only** ← required to resolve tag timestamps for tag-based mode
@@ -152,7 +152,7 @@ You need to create a GitHub App that listens for PR webhooks. This is separate f
    - **Releases** ← required for tag-based mode (fires on `published` action; webhook event type: `release`)
 5. After saving, copy:
    - **App ID** (numeric, at the top of the settings page) → `GITHUB_APP_ID`
-   - **App slug** (from the URL — `github.com/apps/<slug>`) → `NEXT_PUBLIC_GITHUB_APP_SLUG`
+   - **App slug** (from the URL - `github.com/apps/<slug>`) → `NEXT_PUBLIC_GITHUB_APP_SLUG`
 6. Scroll to the bottom and click **Generate a private key**. A `.pem` file downloads.
 7. Base64-encode it (no newlines):
 
@@ -162,15 +162,15 @@ You need to create a GitHub App that listens for PR webhooks. This is separate f
 
    Paste the output as `GITHUB_APP_PRIVATE_KEY`.
 
-> **Tip:** For local dev, you can leave the GitHub App webhook inactive (`Active` checkbox unchecked) and trigger webhooks manually using the Stripe CLI approach below — or just test via `curl` against your local endpoint.
+> **Tip:** For local dev, you can leave the GitHub App webhook inactive (`Active` checkbox unchecked) and trigger webhooks manually using the Stripe CLI approach below, or just test via `curl` against your local endpoint.
 
 #### Stripe
 
 1. Log in to https://dashboard.stripe.com and switch to **Test mode**.
 2. Create three products (Catalog → Products → Add product):
-   - **Starter** — $19.00 recurring monthly → copy the `price_...` ID
-   - **Growth** — $49.00 recurring monthly → copy the `price_...` ID
-   - **Scale** — $79.00 recurring monthly → copy the `price_...` ID
+   - **Starter** - $19.00 recurring monthly → copy the `price_...` ID
+   - **Growth** - $49.00 recurring monthly → copy the `price_...` ID
+   - **Scale** - $79.00 recurring monthly → copy the `price_...` ID
 3. Go to Developers → API keys → copy the **Secret key** (`sk_test_...`)
 4. For the webhook secret in dev, use the Stripe CLI (see [§4](#4-running-the-app-locally) below)
 
@@ -181,7 +181,7 @@ STRIPE_PRICE_GROWTH_MONTHLY=price_...
 STRIPE_PRICE_SCALE_MONTHLY=price_...
 ```
 
-`STRIPE_WEBHOOK_SECRET` is set after you start the Stripe CLI listener — it prints the secret on startup.
+`STRIPE_WEBHOOK_SECRET` is set after you start the Stripe CLI listener - it prints the secret on startup.
 
 #### OpenAI
 
@@ -195,7 +195,7 @@ OPENAI_API_KEY=sk-...
 
 #### Resend
 
-For local development you can use the Resend sandbox — no DNS verification needed.
+For local development you can use the Resend sandbox, no DNS verification needed.
 
 1. Sign up at https://resend.com
 2. Create an API key
@@ -224,7 +224,7 @@ CRON_SECRET=<output from above>
 
 You need three terminal windows running simultaneously for the full local experience.
 
-### Terminal 1 — Next.js dev server
+### Terminal 1 - Next.js dev server
 
 ```bash
 bun dev
@@ -232,9 +232,9 @@ bun dev
 
 App runs at http://localhost:3000.
 
-> The prebuild hook automatically bundles the embeddable widget (`public/widget/widget.js`) before the main build. For dev, it's served directly — run `bun run build:widget` if you change anything in `widget/`.
+> The prebuild hook automatically bundles the embeddable widget (`public/widget/widget.js`) before the main build. For dev, it's served directly - run `bun run build:widget` if you change anything in `widget/`.
 
-### Terminal 2 — Stripe webhook listener
+### Terminal 2 - Stripe webhook listener
 
 ```bash
 stripe listen --forward-to http://localhost:3000/api/webhooks/stripe
@@ -254,7 +254,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 Restart the dev server after adding it.
 
-### Terminal 3 — ngrok tunnel (for GitHub webhooks)
+### Terminal 3 - ngrok tunnel (for GitHub webhooks)
 
 ```bash
 ngrok http 3000
@@ -271,11 +271,11 @@ https://abc123.ngrok-free.app/api/webhooks/github
 > 2. Update `NEXT_PUBLIC_APP_URL` in `.env.local` and restart the dev server
 > 3. Reconnect any repos via **Settings → Repositories** (so the per-repo webhook URL is re-registered with the new ngrok address)
 
-### Supabase Auth — enable GitHub OAuth locally
+### Supabase Auth - enable GitHub OAuth locally
 
 Local Supabase configures OAuth providers via `supabase/config.toml`, **not** the Studio UI (the Studio only shows read-only info locally).
 
-1. Create a **GitHub OAuth App** at https://github.com/settings/developers → **New OAuth App** (this is for user sign-in — separate from the GitHub App used for webhooks):
+1. Create a **GitHub OAuth App** at https://github.com/settings/developers → **New OAuth App** (this is for user sign-in, separate from the GitHub App used for webhooks):
    - **Homepage URL:** `http://localhost:3000`
    - **Authorization callback URL:** `http://127.0.0.1:54321/auth/v1/callback`
 
@@ -286,7 +286,7 @@ Local Supabase configures OAuth providers via `supabase/config.toml`, **not** th
    SUPABASE_AUTH_GITHUB_SECRET=<your-client-secret>
    ```
 
-3. Restart Supabase **with the vars exported into your shell** — `supabase/config.toml` uses `env()` references that read from the shell environment at startup, not from `.env.local`:
+3. Restart Supabase **with the vars exported into your shell** - `supabase/config.toml` uses `env()` references that read from the shell environment at startup, not from `.env.local`:
 
    ```bash
    supabase stop && export $(grep 'SUPABASE_AUTH_GITHUB' .env.local | xargs) && supabase start
@@ -304,7 +304,7 @@ Local Supabase configures OAuth providers via `supabase/config.toml`, **not** th
 
 > **Verify it worked:** open http://localhost:3000/signup and click **Continue with GitHub**. If it redirects to GitHub and back to `/dashboard` or `/onboarding`, OAuth is configured correctly.
 
-> **Troubleshooting — code lands at `http://localhost:3000/?code=...`:** Supabase fell back to `site_url` (root) because the `redirectTo` URL wasn't in its allowed list. The proxy catches this and forwards to `/api/auth/callback` automatically, so sign-in will still complete. To fix the root cause: (1) confirm `NEXT_PUBLIC_APP_URL=http://localhost:3000` is set in `.env.local`, (2) confirm `supabase/config.toml` `additional_redirect_urls` contains `http://localhost:3000/api/auth/callback`, and (3) restart Supabase with the GitHub OAuth env vars exported as shown above.
+> **Troubleshooting - code lands at `http://localhost:3000/?code=...`:** Supabase fell back to `site_url` (root) because the `redirectTo` URL wasn't in its allowed list. The proxy catches this and forwards to `/api/auth/callback` automatically, so sign-in will still complete. To fix the root cause: (1) confirm `NEXT_PUBLIC_APP_URL=http://localhost:3000` is set in `.env.local`, (2) confirm `supabase/config.toml` `additional_redirect_urls` contains `http://localhost:3000/api/auth/callback`, and (3) restart Supabase with the GitHub OAuth env vars exported as shown above.
 
 ---
 
@@ -340,11 +340,11 @@ bun run test -- --reporter=verbose subscribe
 | `tests/api/auth/callback.test.ts`           | Auth callback open-redirect prevention             |
 | `tests/api/cron/reset-quotas.test.ts`       | Cron endpoint auth + quota reset                   |
 | `tests/api/entries/route.test.ts`           | Entry CRUD, IDOR checks                            |
-| `tests/api/repos-patch.test.ts`             | PATCH /repos/[repoId] — tag mode toggle + rollback |
+| `tests/api/repos-patch.test.ts`             | PATCH /repos/[repoId] - tag mode toggle + rollback |
 | `tests/api/public/subscribe.test.ts`        | Subscribe flow, rate limiting, limit enforcement   |
 | `tests/api/public/publish.test.ts`          | Publish flow, quota checks                         |
 | `tests/api/public/rss.test.ts`              | RSS feed generation                                |
-| `tests/api/webhook.test.ts`                 | GitHub webhook — pull_request and release events   |
+| `tests/api/webhook.test.ts`                 | GitHub webhook - pull_request and release events   |
 | `tests/api/workspaces/ignore-rules.test.ts` | Ignore rule CRUD                                   |
 
 ### Linting
@@ -369,25 +369,25 @@ All three must pass with zero errors before merging.
 
 ---
 
-## 6. Manual QA — Testing the Core Flows Locally
+## 6. Manual QA - Testing the Core Flows Locally
 
 Work through each flow after setting up your local environment. Use **test mode** for Stripe and the **Supabase local Studio** to inspect data directly.
 
 ### Flow 1: Sign-up and onboarding
 
 1. Open http://localhost:3000 and click **Get started**
-2. Sign in with GitHub — you'll be redirected to `/onboarding`
+2. Sign in with GitHub, you'll be redirected to `/onboarding`
 3. Create a workspace: enter a name, pick a slug
 
-4. **Before connecting a repo — set the ngrok URL:**  
+4. **Before connecting a repo - set the ngrok URL:**  
    The webhook URL is baked into the GitHub webhook when you connect a repo. Set `NEXT_PUBLIC_APP_URL` to your ngrok address in `.env.local` and restart the dev server **before** proceeding:
    ```env
    NEXT_PUBLIC_APP_URL=https://abc123.ngrok-free.app
    ```
 
-5. Click **Install GitHub App** — GitHub opens in a new tab. Install on your account or org and grant access to at least one repo.
+5. Click **Install GitHub App** - GitHub opens in a new tab. Install on your account or org and grant access to at least one repo.
 
-6. Return to the onboarding tab and click **I've installed it — show repos**. A list of your accessible repos loads from GitHub.
+6. Return to the onboarding tab and click **I've installed it - show repos**. A list of your accessible repos loads from GitHub.
 
 7. Click **Connect →** next to the repo you want to track.
 
@@ -405,7 +405,7 @@ This requires the ngrok tunnel and a connected repo (Flow 1 step 5–7 completed
 2. Within ~5 seconds, a new row should appear in the `changelog_entries` table with `status = 'draft'`
 3. The entry should appear in your dashboard under **Drafts**
 
-**Shortcut — test without a real PR:**
+**Shortcut - test without a real PR:**
 
 The webhook handler looks up the incoming `repo.id` in the `repos` table. You need the real `github_repo_id` of a repo you've connected. Find it in Studio: `repos` table → `github_repo_id` column.
 
@@ -423,7 +423,7 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 
 > The per-repo `webhook_secret` in the `repos` table is distinct from the app-level `GITHUB_APP_WEBHOOK_SECRET`. Each connected repo gets its own secret generated at connect time.
 
-> **Signature validation note:** The webhook handler returns `200 { ok: true }` for both unrecognized repo IDs and invalid signatures (uniform response to prevent repo-ID enumeration). A successful payload creates a `changelog_entries` row — that is the only confirmation that the signature was valid.
+> **Signature validation note:** The webhook handler returns `200 { ok: true }` for both unrecognized repo IDs and invalid signatures (uniform response to prevent repo-ID enumeration). A successful payload creates a `changelog_entries` row - that is the only confirmation that the signature was valid.
 
 ### Flow 2b: Tag-based changelog mode
 
@@ -445,7 +445,7 @@ Tag-based mode creates one changelog entry per Git tag instead of one entry per 
 
 #### Test a release publish
 
-1. Merge a PR on the connected repo — **no new entry should appear** (PR mode is suppressed)
+1. Merge a PR on the connected repo - **no new entry should appear** (PR mode is suppressed)
 2. Push a tag and publish a GitHub Release for it:
    ```bash
    git tag v1.0.0
@@ -455,7 +455,7 @@ Tag-based mode creates one changelog entry per Git tag instead of one entry per 
 3. Within ~5 seconds, a new `changelog_entries` row should appear with `tag_name = 'v1.0.0'` and `pr_number = null`
 4. The entry should show in the dashboard under **Drafts** with an AI-generated summary of all PRs merged since the previous release
 
-**Shortcut — test without publishing a real GitHub Release:**
+**Shortcut - test without publishing a real GitHub Release:**
 
 ```bash
 # Replace REPO_ID with the github_repo_id, WEBHOOK_SECRET with the row's webhook_secret
@@ -468,17 +468,17 @@ curl -X POST http://localhost:3000/api/webhooks/github \
   -d "$PAYLOAD"
 ```
 
-**Non-published actions are silently ignored** (only `action: published` is processed — draft creation, edits, deletes, etc. are all skipped).
+**Non-published actions are silently ignored** (only `action: published` is processed - draft creation, edits, deletes, etc. are all skipped).
 
 #### Test regenerate for tag entries
 
 1. Click a tag-based draft entry in the dashboard
-2. Click **Regenerate with AI** — the route re-fetches PRs from GitHub between the previous tag and this one, then calls `generateReleaseNotesDraft` to produce updated copy
+2. Click **Regenerate with AI** - the route re-fetches PRs from GitHub between the previous tag and this one, then calls `generateReleaseNotesDraft` to produce updated copy
 
 #### Disable tag mode
 
 1. Toggle **Tag-based mode** off in Settings → Repositories
-2. Merge a PR — a new entry should appear again (PR mode restored)
+2. Merge a PR - a new entry should appear again (PR mode restored)
 
 **Check in GitHub:** The webhook should no longer list the `release` event.
 
@@ -488,9 +488,9 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 
 1. Click a draft entry in the dashboard
 2. Edit the title and body
-3. Click **Save draft** — should persist without page reload
-4. Click **Regenerate with AI** — should replace both the title and body with a GPT-4o-generated version
-5. Click **Publish** — entry moves to `status = 'published'`
+3. Click **Save draft** - should persist without page reload
+4. Click **Regenerate with AI** - should replace both the title and body with a GPT-4o-generated version
+5. Click **Publish** - entry moves to `status = 'published'`
 
 **Check the public changelog:** http://localhost:3000/`<your-workspace-slug>`  
 The entry should appear there immediately.
@@ -501,9 +501,9 @@ The entry should appear there immediately.
 2. Enter a test email and submit the subscribe form
 3. In Resend's dashboard, you should see the confirmation email
 4. The subscriber row in the DB should have `confirmed = false` and `confirmation_token_expires_at` set 72 hours from now
-5. Click the confirmation link in the email — links expire after 72 hours; submitting again resends with a fresh link
+5. Click the confirmation link in the email - links expire after 72 hours; submitting again resends with a fresh link
 6. The row should update to `confirmed = true` and both token columns should be cleared
-7. Publish a new entry — the subscriber should receive the entry email
+7. Publish a new entry - the subscriber should receive the entry email
 
 ### Flow 5: Rate limiting on subscribe
 
@@ -533,17 +533,17 @@ The 6th request should return:
 3. Complete the Stripe test checkout
 4. After redirect, the dashboard should show **Starter** as the current plan
 5. Click **Manage subscription** → the Stripe customer portal opens
-6. Cancel the subscription — the plan should revert to **free** after the webhook fires
+6. Cancel the subscription - the plan should revert to **free** after the webhook fires
 
 ### Flow 7: Widget embed and appearance
 
 1. Go to **Dashboard → Widget**
-2. Customise the widget appearance using the settings form:
+2. Customize the widget appearance using the settings form:
    - **Position:** bottom-right / bottom-left / top-right / top-left
    - **Theme:** light or dark
-   - **Accent colour:** colour picker + hex input
+   - **Accent color:** color picker + hex input
    - **Button label:** e.g. "What's new", "Updates", "Changelog"
-3. Click **Save changes** — the widget fetches these settings at runtime, no rebuild needed
+3. Click **Save changes** - the widget fetches these settings at runtime, no rebuild needed
 4. Copy the `<script>` snippet shown at the top
 5. Create a bare HTML file on your machine:
 
@@ -557,21 +557,21 @@ The 6th request should return:
    </html>
    ```
 
-6. **Serve** the file over HTTP — do **not** open it directly as `file://`. Chrome blocks cross-origin fetches from `null` origin (`file://`) even when the server sends `Access-Control-Allow-Origin: *`. Use any local server:
+6. **Serve** the file over HTTP - do **not** open it directly as `file://`. Chrome blocks cross-origin fetches from `null` origin (`file://`) even when the server sends `Access-Control-Allow-Origin: *`. Use any local server:
 
    ```bash
-   npx serve .          # serves on http://localhost:3000 (or next free port)
+   npx serve .                   # serves on http://localhost:3000 (or next free port)
    # or
    python3 -m http.server 8080   # serves on http://localhost:8080
    ```
 
    Then open the URL shown in the terminal (e.g. `http://localhost:8080/widget-test.html`).
 
-7. The button should appear in the configured position and colour — clicking it shows the drawer with your published entries
+7. The button should appear in the configured position and color - clicking it shows the drawer with your published entries
 
 ### Flow 8: Cron endpoint
 
-Test the monthly quota-reset endpoint directly (it's a `GET`, not `POST` — Vercel Cron uses GET):
+Test the monthly quota-reset endpoint directly (it's a `GET`, not `POST` - Vercel Cron uses GET):
 
 ```bash
 curl http://localhost:3000/api/cron/reset-quotas \
@@ -618,7 +618,7 @@ Before deploying, you need live (not local) versions of every service. Follow th
 1. Go to https://vercel.com/new
 2. Import your GitHub repository
 3. Framework preset: **Next.js** (auto-detected)
-4. Do **not** change the build command — the `prebuild` hook in `package.json` runs `build:widget` automatically
+4. Do **not** change the build command - the `prebuild` hook in `package.json` runs `build:widget` automatically
 
 ### 7.3 Set environment variables in Vercel
 
@@ -633,7 +633,7 @@ Go to your project → **Settings → Environment Variables** and add all the **
 
 Either push to `main` (if you've set up auto-deploy) or click **Deploy** in the Vercel dashboard.
 
-Monitor the build log — the `build:widget` step runs first, then `next build`. Both must succeed.
+Monitor the build log - the `build:widget` step runs first, then `next build`. Both must succeed.
 
 ### 7.5 Add your custom domain
 
@@ -672,7 +672,7 @@ To confirm it's registered: Vercel project → **Settings → Cron Jobs**.
 
 Run through these checks immediately after going live, before announcing publicly.
 
-### Automated check — build and tests
+### Automated check - build and tests
 
 ```bash
 bun run test && bun run lint && bun run build
@@ -712,7 +712,7 @@ All must pass with zero errors.
 **Widget**
 - [ ] Embed snippet from `/dashboard/widget` loads on a test page
 - [ ] Published entries render in the drawer
-- [ ] Widget appearance settings (position, theme, colour, label) save and take effect without a rebuild
+- [ ] Widget appearance settings (position, theme, color, label) save and take effect without a rebuild
 
 **Public pages**
 - [ ] `https://mergecast.co/<slug>` → changelog renders
@@ -782,4 +782,4 @@ If API routes return 403 unexpectedly, check:
 
 1. Check Resend dashboard → Emails → filter by `to` address
 2. Verify `RESEND_FROM_EMAIL` matches a domain you've verified in Resend
-3. For local dev, Resend sandbox may silently drop emails without a verified domain — add your personal email as a test recipient in Resend's settings
+3. For local dev, Resend sandbox may silently drop emails without a verified domain - add your personal email as a test recipient in Resend's settings

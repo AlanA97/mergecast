@@ -11,7 +11,7 @@ export function getPlanFromPriceId(priceId: string): Plan {
   if (priceId === process.env.STRIPE_PRICE_STARTER_MONTHLY) return 'starter'
   if (priceId === process.env.STRIPE_PRICE_GROWTH_MONTHLY)  return 'growth'
   if (priceId === process.env.STRIPE_PRICE_SCALE_MONTHLY)   return 'scale'
-  // Throw rather than silently downgrading — an unknown price ID means either a
+  // Throw rather than silently downgrading - an unknown price ID means either a
   // misconfigured env var or a new price not yet mapped. Downgrading a paying
   // customer to 'free' is worse than surfacing an error.
   throw new Error(`Unknown Stripe price ID: ${priceId}`)

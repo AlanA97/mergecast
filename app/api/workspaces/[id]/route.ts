@@ -22,7 +22,7 @@ export async function GET(
     .from('workspace_members').select('role').eq('workspace_id', id).eq('user_id', user.id).single()
   if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  // stripe_customer_id is internal — never expose it to the client
+  // stripe_customer_id is internal - never expose it to the client
   const { data: workspace } = await service
     .from('workspaces')
     .select('id, name, slug, plan, publish_count_this_month, publish_quota_reset_at')

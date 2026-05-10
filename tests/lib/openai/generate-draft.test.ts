@@ -54,7 +54,7 @@ describe('generateChangelogDraft', () => {
 describe('generateReleaseNotesDraft', () => {
   it('returns title and bulleted body from multi-PR list', async () => {
     const client = makeClient(
-      '{"title":"v1.2.0 — Dark mode & faster search","body":"- Dark mode support added\\n- Search now 3× faster"}'
+      '{"title":"v1.2.0 - Dark mode & faster search","body":"- Dark mode support added\\n- Search now 3× faster"}'
     )
     const result = await generateReleaseNotesDraft({
       tagName: 'v1.2.0',
@@ -64,7 +64,7 @@ describe('generateReleaseNotesDraft', () => {
       ],
       _client: client,
     })
-    expect(result.title).toBe('v1.2.0 — Dark mode & faster search')
+    expect(result.title).toBe('v1.2.0 - Dark mode & faster search')
     expect(result.body).toContain('Dark mode')
   })
 

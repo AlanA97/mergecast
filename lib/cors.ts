@@ -1,4 +1,4 @@
-// CORS headers for public widget endpoints — these are called from any origin
+// CORS headers for public widget endpoints - these are called from any origin
 // (third-party sites embedding the widget, or file:// during local dev).
 export const WIDGET_CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',

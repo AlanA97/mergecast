@@ -125,7 +125,7 @@ describe('parsePullRequestEvent', () => {
     expect(result?.labels).toEqual([])
   })
 
-  it('returns a PR that would match an ignore rule — shouldIgnorePR handles the skip', () => {
+  it('returns a PR that would match an ignore rule - shouldIgnorePR handles the skip', () => {
     // This verifies that parsePullRequestEvent correctly surfaces titles and labels
     // so the webhook handler can feed them into shouldIgnorePR for filtering.
     const payload = {

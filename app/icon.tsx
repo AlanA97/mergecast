@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og'
 export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
 
-// Generates /icon.png — linked automatically by Next.js as a fallback icon
+// Generates /icon.png - linked automatically by Next.js as a fallback icon
 // for browsers that don't support SVG favicons (e.g. some Windows/iOS contexts).
 // The primary icon is /public/favicon.svg (declared in app/layout.tsx metadata).
 export default function Icon() {

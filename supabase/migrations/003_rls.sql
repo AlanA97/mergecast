@@ -5,7 +5,7 @@
 -- to requests made through the anon / authenticated Supabase client keys.
 --
 -- Table-level SELECT privileges are also revoked from anon and authenticated
--- at the bottom — all data reads go through the service-role client with
+-- at the bottom - all data reads go through the service-role client with
 -- explicit auth/membership checks in application code.
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ CREATE POLICY "repos_member_all" ON repos
 -- CHANGELOG ENTRIES
 --
 -- Workspace members can do everything. Public reads (changelog page, widget,
--- RSS) all go through the service-role client — there is no need for an anon
+-- RSS) all go through the service-role client - there is no need for an anon
 -- RLS policy here.
 -- ─────────────────────────────────────────────────────────────────────────────
 

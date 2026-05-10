@@ -66,7 +66,7 @@ export async function POST(_req: Request, { params }: Params) {
     .single()
   if (updateError) return NextResponse.json({ error: 'Failed to publish' }, { status: 500 })
 
-  // Atomic increment via RPC — avoids read-modify-write race under concurrent publishes
+  // Atomic increment via RPC - avoids read-modify-write race under concurrent publishes
   await service.rpc('increment_publish_count', { p_workspace_id: workspaceId })
 
   // Fire-and-forget email send

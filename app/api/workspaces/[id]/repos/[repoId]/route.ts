@@ -56,7 +56,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Failed to update repo' }, { status: 500 })
   }
 
-  // Sync GitHub webhook events — if this fails, roll back the DB change
+  // Sync GitHub webhook events - if this fails, roll back the DB change
   if (repo.webhook_id) {
     const parts = repo.full_name.split('/')
     const owner = parts[0]
@@ -77,7 +77,7 @@ export async function PATCH(
       // Roll back so DB and GitHub webhook stay in sync
       await service.from('repos').update({ tag_based_mode: repo.tag_based_mode }).eq('id', repoId)
       return NextResponse.json(
-        { error: 'Failed to update GitHub webhook — please try again' },
+        { error: 'Failed to update GitHub webhook - please try again' },
         { status: 502 }
       )
     }
@@ -122,7 +122,7 @@ export async function DELETE(
     try {
       await deleteWebhookForRepo(repo.github_installation_id, owner, repoName, repo.webhook_id)
     } catch {
-      // Non-fatal — webhook may already be gone (uninstalled app, deleted repo, etc.)
+      // Non-fatal - webhook may already be gone (uninstalled app, deleted repo, etc.)
     }
   }
 

@@ -25,7 +25,7 @@ export async function GET(
     .eq('workspace_id', workspace.id)
     .single()
 
-  // Fall back to defaults if no row yet (shouldn't happen — created with workspace)
+  // Fall back to defaults if no row yet (shouldn't happen - created with workspace)
   return NextResponse.json({
     settings: settings ?? {
       position: 'bottom-right',

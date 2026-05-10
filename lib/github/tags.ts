@@ -45,7 +45,7 @@ export async function getPreviousTag(
     const idx = tags.findIndex(t => t.name === currentTagName)
     if (idx !== -1) {
       if (idx + 1 < tags.length) return tags[idx + 1].name
-      // currentTagName is the last entry on this page — the previous tag was
+      // currentTagName is the last entry on this page - the previous tag was
       // the first entry on the *previous* page (captured in lastTagOnPreviousPage).
       // But since tags are newest-first, the "previous" chronological tag is
       // actually the next item in the list (older tag). If it's the last entry
@@ -59,7 +59,7 @@ export async function getPreviousTag(
     lastTagOnPreviousPage = tags[tags.length - 1].name
     if (tags.length < 100) break // last page reached without finding current tag
   }
-  // Not found within pagination limit — treat as first tag (conservative fallback)
+  // Not found within pagination limit - treat as first tag (conservative fallback)
   void lastTagOnPreviousPage
   return null
 }
@@ -71,7 +71,7 @@ export async function getPreviousTag(
  *
  * Strategy for the normal case:
  *   1. compareCommitsWithBasehead to get commits in range (≤ 250 commits; known
- *      limitation for very large releases — acceptable for v1).
+ *      limitation for very large releases, acceptable for v1).
  *   2. For each commit SHA, call listPullRequestsAssociatedWithCommit.
  *   3. Deduplicate by PR number; filter to merged_at ≤ headTagDate.
  *

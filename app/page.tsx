@@ -66,7 +66,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero — widget-first */}
+      {/* Hero - widget-first */}
       <section className="px-6 py-20 max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Copy */}
@@ -164,7 +164,7 @@ export default function LandingPage() {
         <h2 className="text-2xl font-bold text-center mb-10">How it works</h2>
         <div className="space-y-6">
           {[
-            { step: '1', title: 'Paste one script tag',       desc: 'Add Mergecast to your product. The widget appears instantly — no config needed.' },
+            { step: '1', title: 'Paste one script tag',       desc: 'Add Mergecast to your product. The widget appears instantly, no config needed.' },
             { step: '2', title: 'Connect your repo',          desc: 'Install the GitHub App. Mergecast starts watching for merged PRs.' },
             { step: '3', title: 'Merge → Review → Publish',   desc: 'AI drafts the release note. You review, edit if needed, and publish. Widget updates, subscribers get emailed.' },
           ].map(({ step, title, desc }) => (

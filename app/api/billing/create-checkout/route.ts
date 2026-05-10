@@ -3,7 +3,7 @@ import { getStripeClient } from '@/lib/stripe/client'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-// Whitelist of accepted price IDs — prevents a client from substituting
+// Whitelist of accepted price IDs - prevents a client from substituting
 // arbitrary Stripe price IDs (e.g. from a test environment or a cheaper plan).
 function getAllowedPriceIds(): Set<string> {
   return new Set(
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   const { workspace_id, price_id } = parsed.data
 
-  // Validate price_id against the known set — reject anything else
+  // Validate price_id against the known set - reject anything else
   if (!getAllowedPriceIds().has(price_id)) {
     return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 })
   }

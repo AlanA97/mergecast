@@ -41,7 +41,7 @@ export async function GET(
 
   // The user's GitHub login is stored in auth metadata by Supabase's GitHub OAuth provider.
   // We use it to filter installations to only those belonging to the user's account or
-  // organisations they administer — preventing cross-customer data leakage.
+  // organisations they administer, preventing cross-customer data leakage.
   const githubLogin: string | undefined =
     user.user_metadata?.user_name ?? user.user_metadata?.preferred_username
 

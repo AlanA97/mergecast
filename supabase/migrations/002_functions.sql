@@ -3,7 +3,7 @@
 -- All SECURITY DEFINER functions and updated_at triggers.
 -- Every function pins its search_path to prevent search-path injection
 -- (Supabase security advisory: function_search_path_mutable).
--- EXECUTE is revoked from PUBLIC at the bottom — service_role is a
+-- EXECUTE is revoked from PUBLIC at the bottom - service_role is a
 -- superuser-equivalent and bypasses privilege checks, so it continues
 -- to work without an explicit grant.
 
@@ -12,7 +12,7 @@
 --
 -- Returns true when auth.uid() is a member of the given workspace.
 -- Marked STABLE so the planner can cache the result within a single
--- statement — important for per-row RLS policy evaluation.
+-- statement, important for per-row RLS policy evaluation.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION is_workspace_member(ws_id UUID)
@@ -161,12 +161,12 @@ CREATE TRIGGER trg_changelog_settings_updated_at
 -- Lock down EXECUTE on all internal functions
 --
 -- Supabase explicitly grants EXECUTE to anon and authenticated on all functions
--- at project setup time, so revoking from PUBLIC alone is not enough — those
+-- at project setup time, so revoking from PUBLIC alone is not enough - those
 -- direct role grants survive a REVOKE FROM PUBLIC. Both must be revoked.
 -- service_role is a superuser-equivalent and bypasses privilege checks, so it
 -- continues to work without an explicit grant.
 -- All of these functions are called exclusively via the service-role client
--- in application code — they are never legitimately called via the REST API.
+-- in application code - they are never legitimately called via the REST API.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 REVOKE EXECUTE ON FUNCTION is_workspace_member(uuid)                        FROM PUBLIC, anon, authenticated;
