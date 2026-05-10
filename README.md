@@ -118,19 +118,22 @@ mergecast/
 
 4. **Apply database migrations**
 
-   In the Supabase dashboard, open the SQL editor and run each file in `supabase/migrations/` in order:
+   ```bash
+   supabase db reset
+   ```
+
+   This runs the three migrations in `supabase/migrations/` in order:
 
    ```
-   001_initial_schema.sql
-   002_rls_policies.sql
-   003_view_count_and_ignore_rules.sql
-   004_fix_function_search_paths.sql
+   001_schema.sql     # all tables, columns, indexes
+   002_functions.sql  # RPC functions, triggers
+   003_rls.sql        # Row Level Security policies
    ```
 
 5. **Start the development server**
 
    ```bash
-   npm run dev
+   bun dev
    ```
 
    The app will be available at [http://localhost:3000](http://localhost:3000).
