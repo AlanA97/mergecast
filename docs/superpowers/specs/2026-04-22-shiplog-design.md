@@ -1,7 +1,7 @@
-# Mergecast — Product Design Spec
+# Mergecast - Product Design Spec
 
 **Date:** 2026-04-22  
-**Status:** ✅ Implemented — shipped to `main`  
+**Status:** ✅ Implemented - shipped to `main`  
 **Founder profile:** Solo, senior software engineer  
 **Target launch:** 4 weeks from start
 
@@ -17,7 +17,7 @@ Existing tools (Headwayapp, Changelogfy, Beamer) are fully manual. GitHub Releas
 
 ## Solution
 
-Mergecast connects to a GitHub repo, listens for merged PRs, uses AI to generate user-facing release notes, hosts a public changelog page, emails subscribers, and provides an embeddable widget — with the user reviewing AI output before publishing.
+Mergecast connects to a GitHub repo, listens for merged PRs, uses AI to generate user-facing release notes, hosts a public changelog page, emails subscribers, and provides an embeddable widget - with the user reviewing AI output before publishing.
 
 ---
 
@@ -33,7 +33,7 @@ Mergecast connects to a GitHub repo, listens for merged PRs, uses AI to generate
 
 | Tool                     | Gap                                                   |
 |--------------------------|-------------------------------------------------------|
-| Headwayapp / Changelogfy | 100% manual — users churn when they stop posting      |
+| Headwayapp / Changelogfy | 100% manual - users churn when they stop posting      |
 | Beamer                   | Expensive, feature-bloated, no AI generation          |
 | GitHub Releases          | Developer-facing, no public page, no email, no widget |
 | Notion public pages      | No structure, no automation, no subscriber management |
@@ -131,7 +131,7 @@ email_sends      (id, workspace_id, entry_id, sent_at, recipient_count)
 | Layer           | Choice               | Reason                                                       |
 |-----------------|----------------------|--------------------------------------------------------------|
 | Frontend + API  | Next.js 16           | Full-stack, SSR for changelog pages, API routes for webhooks |
-| Database + Auth | Supabase             | Postgres, Auth, Storage, Realtime — all-in-one               |
+| Database + Auth | Supabase             | Postgres, Auth, Storage, Realtime - all-in-one               |
 | Email           | Resend               | Developer-friendly, cheap, reliable deliverability           |
 | Payments        | Stripe Billing       | Standard, Checkout handles UI, webhooks for lifecycle        |
 | Styling         | Tailwind + shadcn/ui | Fast, professional, low maintenance                          |
@@ -163,7 +163,7 @@ email_sends      (id, workspace_id, entry_id, sent_at, recipient_count)
 
 - List of workspaces (name, plan, created_at, MRR contribution)
 - Ability to manually override plan (for beta users, refunds)
-- No complex analytics needed — PostHog + Stripe Dashboard covers it
+- No complex analytics needed - PostHog + Stripe Dashboard covers it
 
 ---
 
@@ -182,7 +182,7 @@ email_sends      (id, workspace_id, entry_id, sent_at, recipient_count)
 
 | Risk                          | Mitigation                                                     |
 |-------------------------------|----------------------------------------------------------------|
-| AI output quality             | Mandatory edit step — never auto-publish                       |
+| AI output quality             | Mandatory edit step - never auto-publish                       |
 | GitHub API changes            | Webhooks are fundamental infrastructure, stable                |
 | "Good enough" with free tools | Free tier captures these users; 3-publish limit forces upgrade |
 | Funded competitor             | 6–12 month window to get 200 paying customers and strong brand |

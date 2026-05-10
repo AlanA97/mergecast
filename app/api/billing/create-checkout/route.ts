@@ -16,7 +16,7 @@ function getAllowedPriceIds(): Set<string> {
 }
 
 const CheckoutSchema = z.object({
-  workspace_id: z.string().uuid(),
+  workspace_id: z.uuid(),
   price_id: z.string().startsWith('price_'),
 })
 

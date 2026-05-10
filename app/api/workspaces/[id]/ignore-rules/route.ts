@@ -48,7 +48,7 @@ export async function POST(
 
   const body = await request.json()
   const parsed = CreateRuleSchema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return NextResponse.json({ error: z.treeifyError(parsed.error) }, { status: 400 })
 
   const service = createSupabaseServiceClient()
 

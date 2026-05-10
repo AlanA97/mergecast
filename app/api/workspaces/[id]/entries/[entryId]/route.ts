@@ -48,7 +48,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const body = await request.json()
   const parsed = UpdateEntrySchema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return NextResponse.json({ error: z.treeifyError(parsed.error) }, { status: 400 })
 
   const service = createSupabaseServiceClient()
   const { data: membership } = await service

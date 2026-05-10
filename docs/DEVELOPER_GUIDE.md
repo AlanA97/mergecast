@@ -11,7 +11,7 @@
 3. [Environment Variables](#3-environment-variables)
 4. [Running the App Locally](#4-running-the-app-locally)
 5. [Testing](#5-testing)
-6. [Manual QA - Testing the Core Flows Locally](#6-manual-qa--testing-the-core-flows-locally)
+6. [Manual QA - Testing the Core Flows Locally](#6-manual-qa-testing-the-core-flows-locally)
 7. [Deploying to Production (Vercel)](#7-deploying-to-production-vercel)
 8. [Post-Deployment Verification](#8-post-deployment-verification)
 9. [Troubleshooting](#9-troubleshooting)
@@ -369,7 +369,7 @@ All three must pass with zero errors before merging.
 
 ---
 
-## 6. Manual QA - Testing the Core Flows Locally
+## 6. Manual QA, Testing the Core Flows Locally
 
 Work through each flow after setting up your local environment. Use **test mode** for Stripe and the **Supabase local Studio** to inspect data directly.
 

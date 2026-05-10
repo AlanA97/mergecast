@@ -1,6 +1,6 @@
 # Mergecast Pre-Launch Checklist
 
-> **Status:** Ready to deploy — all code fixes committed to `main`.  
+> **Status:** Ready to deploy - all code fixes committed to `main`.  
 > This document covers every operational task required to go from a clean repo to a live production service.
 
 ---
@@ -39,7 +39,7 @@ All the following are on `main` and require no further code changes:
 ### 2.1 Supabase project
 
 1. Create a new project at [supabase.com](https://supabase.com).
-2. **Run migrations** — in order, from the Supabase SQL editor or CLI:
+2. **Run migrations** - in order, from the Supabase SQL editor or CLI:
    ```
    supabase/migrations/001_schema.sql
    supabase/migrations/002_functions.sql
@@ -47,7 +47,7 @@ All the following are on `main` and require no further code changes:
    ```
 3. **Enable GitHub OAuth provider**  
    Dashboard → Authentication → Providers → GitHub  
-   - Client ID + Secret: from your GitHub OAuth App (separate from the GitHub App used for webhooks — this is for user sign-in)  
+   - Client ID + Secret: from your GitHub OAuth App (separate from the GitHub App used for webhooks - this is for user sign-in)  
    - Callback URL to set in GitHub: `https://<project-ref>.supabase.co/auth/v1/callback`
 
 4. **Set auth redirect URLs**  
@@ -58,7 +58,7 @@ All the following are on `main` and require no further code changes:
 5. **Collect credentials** for env vars:
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - Anon/public key → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-   - Service role key → `SUPABASE_SECRET_KEY` *(keep secret — never expose to client)*
+   - Service role key → `SUPABASE_SECRET_KEY` *(keep secret - never expose to client)*
 
 ---
 
@@ -144,7 +144,7 @@ All the following are on `main` and require no further code changes:
 vercel --prod
 ```
 
-Framework preset: **Next.js**. No custom build command needed — `bun run build` runs `build:widget` automatically via the `prebuild` hook. Vercel detects `bun.lockb` and uses Bun as the package manager automatically.
+Framework preset: **Next.js**. No custom build command needed - `bun run build` runs `build:widget` automatically via the `prebuild` hook. Vercel detects `bun.lockb` and uses Bun as the package manager automatically.
 
 ### 3.2 Environment variables
 
@@ -196,7 +196,7 @@ Update your DNS registrar with the CNAME/A records Vercel provides.
 The `/admin` route is protected by `user.app_metadata.is_admin === true`. Set this manually in Supabase for your account:
 
 ```sql
--- Run in Supabase SQL editor — replace with your user's UUID
+-- Run in Supabase SQL editor - replace with your user's UUID
 UPDATE auth.users
 SET raw_app_meta_data = raw_app_meta_data || '{"is_admin": true}'::jsonb
 WHERE id = '<your-user-uuid>';
@@ -253,9 +253,9 @@ Run through each of these on the live URL before announcing:
 
 These are not blockers for launch but should be addressed in the first sprint after shipping:
 
-- **Error monitoring**: add Sentry (or similar) to `app/error.tsx` — right now errors are only `console.error`'d.
+- **Error monitoring**: add Sentry (or similar) to `app/error.tsx` - right now errors are only `console.error`'d.
 - **Rate limiting at scale**: the current in-memory rate limiter in `lib/rate-limit.ts` is per-Vercel-instance. Swap the backing store for [Vercel KV](https://vercel.com/storage/kv) or [Upstash Redis](https://upstash.com) for cluster-wide enforcement.
 - **CSP nonce upgrade**: `next.config.ts` uses `'unsafe-inline'` for scripts/styles. A nonce-based CSP (generated in `proxy.ts`, threaded via headers to the root layout) would be significantly stronger.
-- **Subscriber export**: no way to export the subscriber list yet — useful once you have paying users.
+- **Subscriber export**: no way to export the subscriber list yet - useful once you have paying users.
 - **Repo limit enforcement**: `PLAN_LIMITS.repos` is defined but not enforced server-side when connecting a new repo. Add a check in the repo-connect flow.
 - **Custom domain for changelogs**: the onboarding and settings UI mentions `changelog.mergecast.co/{slug}` but the app currently serves changelogs at `/{slug}` on the main domain. A subdomain proxy or wildcard domain setup is needed if subdomain changelogs are the intended UX.

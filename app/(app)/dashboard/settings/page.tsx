@@ -352,7 +352,7 @@ export default function SettingsPage() {
                     {togglingTagMode === repo.id
                       ? <Loader2 className="h-3 w-3 animate-spin text-white absolute left-1/2 -translate-x-1/2" />
                       : <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          repo.tag_based_mode ? 'translate-x-[18px]' : 'translate-x-0.5'
+                          repo.tag_based_mode ? 'translate-x-4.5' : 'translate-x-0.5'
                         }`} />
                     }
                   </button>

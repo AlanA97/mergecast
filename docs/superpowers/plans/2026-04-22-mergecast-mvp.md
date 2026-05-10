@@ -1,12 +1,12 @@
 # Mergecast MVP Implementation Plan
 
-> **Status: ✅ Completed** — All tasks implemented and merged to `main`.  
+> **Status: ✅ Completed** - All tasks implemented and merged to `main`.  
 > Note: migrations were later consolidated. The canonical schema is now in three baseline files:  
 > `001_schema.sql`, `002_functions.sql`, `003_rls.sql`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build Mergecast — an AI-powered changelog SaaS that connects to GitHub, auto-drafts release notes from merged PRs, hosts a public changelog page, emails subscribers, and provides an embeddable widget.
+**Goal:** Build Mergecast - an AI-powered changelog SaaS that connects to GitHub, auto-drafts release notes from merged PRs, hosts a public changelog page, emails subscribers, and provides an embeddable widget.
 
 **Architecture:** Next.js 16 App Router for frontend + API routes; Supabase for Postgres + Auth + Storage; GitHub App for webhook delivery; OpenAI GPT-4o for draft generation; Resend for transactional/broadcast email; Stripe Billing for subscriptions; a vanilla-JS widget bundle served from the edge.
 
@@ -556,7 +556,7 @@ describe('getPlanFromPriceId', () => {
 npm test tests/lib/plans.test.ts
 ```
 
-Expected: FAIL — `Cannot find module '@/lib/plans'`
+Expected: FAIL - `Cannot find module '@/lib/plans'`
 
 - [ ] **Step 3: Implement `lib/plans.ts`**
 
@@ -890,13 +890,13 @@ export default async function SignupPage() {
 }
 ```
 
-- [ ] **Step 5: Manual test — confirm auth flow works**
+- [ ] **Step 5: Manual test - confirm auth flow works**
 
 ```bash
 npm run dev
 # Open http://localhost:3000/signup
 # Click "Continue with GitHub"
-# Authorize → should redirect to /onboarding (404 for now — that's fine)
+# Authorize → should redirect to /onboarding (404 for now - that's fine)
 # Check Supabase dashboard → Authentication → Users → confirm user created
 ```
 
@@ -983,7 +983,7 @@ describe('checkPublishQuota', () => {
 npm test tests/lib/quota.test.ts
 ```
 
-Expected: FAIL — `Cannot find module '@/lib/quota'`
+Expected: FAIL - `Cannot find module '@/lib/quota'`
 
 - [ ] **Step 3: Implement `lib/quota.ts`**
 
@@ -1474,7 +1474,7 @@ export default function OnboardingPage() {
               Opens GitHub in a new tab. Return here when done.
             </p>
             <Button variant="outline" className="w-full" onClick={() => setStep('done')}>
-              I've installed it — continue
+              I've installed it - continue
             </Button>
             <button
               className="w-full text-sm text-muted-foreground underline"
@@ -1618,7 +1618,7 @@ describe('parsePullRequestEvent', () => {
 npm test tests/lib/github-webhook.test.ts
 ```
 
-Expected: FAIL — `Cannot find module '@/lib/github/webhook'`
+Expected: FAIL - `Cannot find module '@/lib/github/webhook'`
 
 - [ ] **Step 3: Implement `lib/github/webhook.ts`**
 
@@ -1755,7 +1755,7 @@ describe('generateChangelogDraft', () => {
 npm test tests/lib/generate-draft.test.ts
 ```
 
-Expected: FAIL — `Cannot find module '@/lib/openai/generate-draft'`
+Expected: FAIL - `Cannot find module '@/lib/openai/generate-draft'`
 
 - [ ] **Step 3: Implement `lib/openai/generate-draft.ts`**
 
@@ -1864,7 +1864,7 @@ export async function POST(request: Request) {
 
   const pr = parsePullRequestEvent(payload)
   if (!pr) {
-    // Not a merged PR — silently ignore
+    // Not a merged PR - silently ignore
     return NextResponse.json({ ok: true })
   }
 
@@ -1878,7 +1878,7 @@ export async function POST(request: Request) {
     .single()
 
   if (!repo) {
-    // Unknown repo — acknowledge to prevent GitHub retries
+    // Unknown repo - acknowledge to prevent GitHub retries
     return NextResponse.json({ ok: true })
   }
 
@@ -1904,7 +1904,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, duplicate: true })
   }
 
-  // Generate AI draft (async — but we await it here for simplicity in MVP)
+  // Generate AI draft (async - but we await it here for simplicity in MVP)
   const draft = await generateChangelogDraft({
     prTitle: pr.prTitle,
     prBody: pr.prBody,
@@ -3340,7 +3340,7 @@ function buildEmailHtml(input: {
   changelogUrl: string
   unsubscribeUrl: string
 }): string {
-  // Plain text rendering — no HTML rendering of user content to avoid XSS in emails
+  // Plain text rendering - no HTML rendering of user content to avoid XSS in emails
   const escapedContent = input.entryContent
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\n/g, '<br>')
@@ -3361,7 +3361,7 @@ function buildEmailHtml(input: {
 
 ```bash
 git add lib/resend/
-git commit -m "feat: Resend email — confirmation and broadcast with unsubscribe links"
+git commit -m "feat: Resend email - confirmation and broadcast with unsubscribe links"
 ```
 
 ---
@@ -3611,7 +3611,7 @@ export default async function WidgetPage() {
 
 ```bash
 git add widget/ app/api/widget/ app/(app)/dashboard/widget/ public/widget/
-git commit -m "feat: embeddable widget — vanilla JS bundle, serve route, dashboard snippet page"
+git commit -m "feat: embeddable widget - vanilla JS bundle, serve route, dashboard snippet page"
 ```
 
 ---
@@ -3743,7 +3743,7 @@ describe('handleSubscriptionDeleted', () => {
 npm test tests/lib/stripe-webhooks.test.ts
 ```
 
-Expected: FAIL — `Cannot find module '@/lib/stripe/webhooks'`
+Expected: FAIL - `Cannot find module '@/lib/stripe/webhooks'`
 
 - [ ] **Step 5: Implement `lib/stripe/webhooks.ts`**
 
@@ -3991,7 +3991,7 @@ export async function POST(request: Request) {
         await handleSubscriptionDeleted(event.data.object)
         break
       case 'invoice.payment_failed':
-        // Log only — Stripe dunning handles retries; subscription.deleted fires after dunning ends
+        // Log only - Stripe dunning handles retries; subscription.deleted fires after dunning ends
         console.warn('invoice.payment_failed for customer', (event.data.object as any).customer)
         break
     }
@@ -4112,7 +4112,7 @@ export default function BillingPage() {
           {plans.map(plan => (
             <div key={plan.id} className="flex items-center justify-between rounded-lg border p-4">
               <div>
-                <p className="font-medium">{plan.name} — ${plan.price}/mo</p>
+                <p className="font-medium">{plan.name} - ${plan.price}/mo</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {plan.limits.publishes_per_month === Infinity ? 'Unlimited' : plan.limits.publishes_per_month} publishes ·{' '}
                   {plan.limits.subscribers.toLocaleString()} subscribers ·{' '}
@@ -4207,7 +4207,7 @@ export default function LandingPage() {
           Stop writing changelogs.<br />Start shipping them.
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto">
-          Connect your GitHub repo. Mergecast reads your merged PRs, writes user-facing release notes with AI, and emails your subscribers — automatically.
+          Connect your GitHub repo. Mergecast reads your merged PRs, writes user-facing release notes with AI, and emails your subscribers - automatically.
         </p>
         <div className="flex items-center gap-4 justify-center">
           <Button size="lg" asChild><Link href="/signup">Start for free</Link></Button>
@@ -4323,11 +4323,11 @@ git commit -m "feat: marketing landing page with hero, features, how-it-works, a
 
 **Files:**
 - Create: `app/admin/page.tsx`
-- Modify: `supabase/migrations` — add `is_admin` to `auth.users` metadata
+- Modify: `supabase/migrations` - add `is_admin` to `auth.users` metadata
 
 - [ ] **Step 1: Add is_admin flag**
 
-The simplest approach: use Supabase user metadata. Set `is_admin: true` in the service role client for your own user. In a SQL migration, you cannot alter `auth.users` directly via SQL in migrations — do this via the Supabase Dashboard:
+The simplest approach: use Supabase user metadata. Set `is_admin: true` in the service role client for your own user. In a SQL migration, you cannot alter `auth.users` directly via SQL in migrations - do this via the Supabase Dashboard:
 
 ```
 Supabase Dashboard → Authentication → Users → Find your user → Edit → Add to Raw User Meta Data:
@@ -4371,7 +4371,7 @@ export default async function AdminPage() {
     <div className="p-6 max-w-5xl space-y-8">
       <div>
         <h1 className="text-xl font-semibold">Admin</h1>
-        <p className="text-sm text-muted-foreground">Internal overview — not visible to users.</p>
+        <p className="text-sm text-muted-foreground">Internal overview - not visible to users.</p>
       </div>
 
       {/* Stats */}
@@ -4735,13 +4735,13 @@ npm test
 ```
 
 Expected passing tests:
-- `tests/lib/plans.test.ts` — 6 tests
-- `tests/lib/quota.test.ts` — 4 tests
-- `tests/lib/github-webhook.test.ts` — 5 tests
-- `tests/lib/generate-draft.test.ts` — 2 tests
-- `tests/lib/stripe-webhooks.test.ts` — 3 tests
-- `tests/api/publish.test.ts` — 2 tests
-- `tests/api/subscribe.test.ts` — 2 tests
+- `tests/lib/plans.test.ts` - 6 tests
+- `tests/lib/quota.test.ts` - 4 tests
+- `tests/lib/github-webhook.test.ts` - 5 tests
+- `tests/lib/generate-draft.test.ts` - 2 tests
+- `tests/lib/stripe-webhooks.test.ts` - 3 tests
+- `tests/api/publish.test.ts` - 2 tests
+- `tests/api/subscribe.test.ts` - 2 tests
 
 Total: 24 tests. Fix any failures before proceeding.
 

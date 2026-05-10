@@ -53,7 +53,7 @@ $$;
 -- increment_publish_count
 --
 -- Atomically increments publish_count_this_month for a workspace so that
--- concurrent publish requests cannot lose each other's increments via a
+-- concurrent publishes requests cannot lose each other's increments via a
 -- read-modify-write race. Raises an exception when the workspace is not
 -- found rather than silently succeeding with zero rows updated.
 -- ─────────────────────────────────────────────────────────────────────────────

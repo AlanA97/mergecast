@@ -54,7 +54,7 @@ export async function POST(
 
   const body = await request.json()
   const parsed = ConnectRepoSchema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return NextResponse.json({ error: z.treeifyError(parsed.error) }, { status: 400 })
 
   const { github_installation_id, github_repo_id, full_name } = parsed.data
   const [owner, repo] = full_name.split('/')

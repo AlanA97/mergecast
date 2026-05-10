@@ -12,10 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Compiled widget bundle — not source, should not be linted
+    // Compiled widget bundle - not source, should not be linted
     "public/widget/**",
   ]),
-  // Test files: allow `as any` for mock objects — standard Vitest/Jest practice
+  // Test files: allow `as any` for mock objects - standard Vitest/Jest practice
   {
     files: ["tests/**/*.ts"],
     rules: {

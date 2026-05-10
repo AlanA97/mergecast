@@ -1,6 +1,6 @@
-# Mergecast v1.1 — Defensibility Sprint Implementation Plan
+# Mergecast v1.1 - Defensibility Sprint Implementation Plan
 
-> **Status: ✅ Completed** — All tasks implemented and merged to `main`.  
+> **Status: ✅ Completed** - All tasks implemented and merged to `main`.  
 > Note: `003_view_count_and_ignore_rules.sql` referenced here was absorbed into the consolidated baseline migrations.  
 > The canonical schema is now: `001_schema.sql`, `002_functions.sql`, `003_rls.sql`.
 
@@ -18,26 +18,26 @@
 
 **Create:**
 - `supabase/migrations/003_view_count_and_ignore_rules.sql`
-- `lib/github/ignore-rules.ts` — pure matching logic, no DB access
-- `app/api/workspaces/[id]/ignore-rules/route.ts` — GET + POST
-- `app/api/workspaces/[id]/ignore-rules/[ruleId]/route.ts` — DELETE
-- `app/api/workspaces/[id]/changelog-settings/route.ts` — GET + PATCH
-- `app/(public)/[slug]/rss.xml/route.ts` — RSS 2.0 feed
+- `lib/github/ignore-rules.ts` - pure matching logic, no DB access
+- `app/api/workspaces/[id]/ignore-rules/route.ts` - GET + POST
+- `app/api/workspaces/[id]/ignore-rules/[ruleId]/route.ts` - DELETE
+- `app/api/workspaces/[id]/changelog-settings/route.ts` - GET + PATCH
+- `app/(public)/[slug]/rss.xml/route.ts` - RSS 2.0 feed
 - `tests/lib/github/ignore-rules.test.ts`
 - `tests/api/ignore-rules.test.ts`
 - `tests/api/rss.test.ts`
 
 **Modify:**
-- `lib/github/webhook.ts` — add `labels` to `ParsedPullRequest`
-- `tests/lib/github/webhook.test.ts` — update snapshot + add label test
-- `app/api/webhooks/github/route.ts` — check ignore rules before creating draft
-- `app/api/workspaces/route.ts` — seed default ignore rules on workspace creation
-- `app/(public)/[slug]/page.tsx` — fire non-blocking view count RPC, add RSS link in metadata
-- `app/(app)/dashboard/page.tsx` — approaching-limit banner
-- `components/dashboard/entry-card.tsx` — show view count
-- `components/dashboard/entry-editor.tsx` — show view count in right panel
-- `app/(app)/dashboard/settings/page.tsx` — ignore rules UI + show_powered_by toggle
-- `app/page.tsx` — widget-first hero rewrite
+- `lib/github/webhook.ts` - add `labels` to `ParsedPullRequest`
+- `tests/lib/github/webhook.test.ts` - update snapshot + add label test
+- `app/api/webhooks/github/route.ts` - check ignore rules before creating draft
+- `app/api/workspaces/route.ts` - seed default ignore rules on workspace creation
+- `app/(public)/[slug]/page.tsx` - fire non-blocking view count RPC, add RSS link in metadata
+- `app/(app)/dashboard/page.tsx` - approaching-limit banner
+- `components/dashboard/entry-card.tsx` - show view count
+- `components/dashboard/entry-editor.tsx` - show view count in right panel
+- `app/(app)/dashboard/settings/page.tsx` - ignore rules UI + show_powered_by toggle
+- `app/page.tsx` - widget-first hero rewrite
 
 ---
 
@@ -273,7 +273,7 @@ describe('shouldIgnorePR', () => {
 npx vitest run tests/lib/github/ignore-rules.test.ts
 ```
 
-Expected: FAIL — `Cannot find module '@/lib/github/ignore-rules'`
+Expected: FAIL - `Cannot find module '@/lib/github/ignore-rules'`
 
 - [ ] **Step 3: Implement the matching function**
 
@@ -451,7 +451,7 @@ describe('DELETE /api/workspaces/[id]/ignore-rules/[ruleId]', () => {
 npx vitest run tests/api/ignore-rules.test.ts
 ```
 
-Expected: FAIL — modules not found.
+Expected: FAIL - modules not found.
 
 - [ ] **Step 3: Create the collection route**
 
@@ -712,7 +712,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, duplicate: true })
   }
 
-  // Check ignore rules — fail open (if DB unreachable, create the draft anyway)
+  // Check ignore rules - fail open (if DB unreachable, create the draft anyway)
   const { data: ignoreRules } = await service
     .from('pr_ignore_rules')
     .select('rule_type, pattern')
@@ -891,7 +891,7 @@ describe('GET /[slug]/rss.xml', () => {
 npx vitest run tests/api/rss.test.ts
 ```
 
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Create the RSS route**
 
@@ -1020,7 +1020,7 @@ Also add a small RSS icon link in the public page footer (at the bottom of the J
 </footer>
 ```
 
-Remove the old standalone footer (lines 77-84 in the original file — the `{settings?.show_powered_by !== false && (...)}` block) since it's now merged into the new footer.
+Remove the old standalone footer (lines 77-84 in the original file - the `{settings?.show_powered_by !== false && (...)}` block) since it's now merged into the new footer.
 
 - [ ] **Step 5: Run RSS tests**
 
@@ -1066,7 +1066,7 @@ const { data: entries } = await service
   .limit(50)
 
 // Fire-and-forget: increment view counts for all visible entries
-// Do NOT await — this must not block page render
+// Do NOT await - this must not block page render
 if (entries && entries.length > 0) {
   service.rpc('increment_entry_views', {
     entry_ids: entries.map(e => e.id),
@@ -1347,7 +1347,7 @@ git commit -m "feat: changelog settings GET/PATCH API"
 
 ---
 
-## Task 11: Settings page — "Powered by Mergecast" toggle + ignore rules
+## Task 11: Settings page - "Powered by Mergecast" toggle + ignore rules
 
 **Files:**
 - Modify: `app/(app)/dashboard/settings/page.tsx`
@@ -1542,7 +1542,7 @@ export default function SettingsPage() {
         <div>
           <p className="font-medium">PR ignore rules</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            PRs matching any rule are silently skipped — no draft is created.
+            PRs matching any rule are silently skipped - no draft is created.
           </p>
         </div>
 
@@ -1840,7 +1840,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero — widget-first */}
+      {/* Hero - widget-first */}
       <section className="px-6 py-20 max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Copy */}
@@ -1946,7 +1946,7 @@ export default function LandingPage() {
         <h2 className="text-2xl font-bold text-center mb-10">How it works</h2>
         <div className="space-y-6">
           {[
-            { step: '1', title: 'Paste one script tag',  desc: 'Add Mergecast to your product. The widget appears instantly — no config needed.' },
+            { step: '1', title: 'Paste one script tag',  desc: 'Add Mergecast to your product. The widget appears instantly - no config needed.' },
             { step: '2', title: 'Connect your repo',     desc: 'Install the GitHub App. Mergecast starts watching for merged PRs.' },
             { step: '3', title: 'Merge → Review → Publish', desc: 'AI drafts the release note. You review, edit if needed, and publish. Widget updates, subscribers get emailed.' },
           ].map(({ step, title, desc }) => (
@@ -2066,9 +2066,9 @@ All spec sections covered. ✅
 **Placeholder scan:** All code blocks are complete implementations. No TBDs. ✅
 
 **Type consistency:**
-- `shouldIgnorePR` defined in Task 3 as `(prTitle: string, labels: string[], rules: IgnoreRule[]) => boolean`. Used in Task 6 as `shouldIgnorePR(pr.prTitle, pr.labels, ignoreRules)` — `pr.labels` is `string[]` per Task 2. ✅
+- `shouldIgnorePR` defined in Task 3 as `(prTitle: string, labels: string[], rules: IgnoreRule[]) => boolean`. Used in Task 6 as `shouldIgnorePR(pr.prTitle, pr.labels, ignoreRules)` - `pr.labels` is `string[]` per Task 2. ✅
 - `ParsedPullRequest.labels: string[]` added in Task 2, consumed in Task 6. ✅
 - `EntryCard` interface gains `view_count: number` in Task 9. The `getEntries` query uses `select('*')` which includes all columns after the Task 1 migration. ✅
 - `EntryEditor` interface gains `view_count: number` and `published_at: string | null`. The entry detail page uses `select('*')` so both are present at runtime. ✅
-- `Eye` icon imported from `lucide-react` in both `entry-card.tsx` and `entry-editor.tsx` — verified it exists in lucide-react@1.8.0 (same approach as other icons used in codebase). ✅
-- `AlertTriangle` imported in `dashboard/page.tsx` — present in lucide-react@1.8.0. ✅
+- `Eye` icon imported from `lucide-react` in both `entry-card.tsx` and `entry-editor.tsx` - verified it exists in lucide-react@1.8.0 (same approach as other icons used in codebase). ✅
+- `AlertTriangle` imported in `dashboard/page.tsx` - present in lucide-react@1.8.0. ✅

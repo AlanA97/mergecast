@@ -43,7 +43,7 @@ export default async function SubscribersPage() {
         </div>
       ) : (
         <div className="rounded-lg border overflow-hidden overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
+          <table className="w-full min-w-120 text-sm">
             <thead className="border-b bg-muted/50">
               <tr>
                 {['Email', 'Status', 'Subscribed'].map(h => (

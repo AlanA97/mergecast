@@ -1,4 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import {beforeEach, describe, expect, it, vi} from 'vitest'
+import {PATCH} from '@/app/api/workspaces/[id]/repos/[repoId]/route'
+import {updateWebhookEventsForRepo} from '@/lib/github/app'
+import {createSupabaseServerClient, createSupabaseServiceClient} from '@/lib/supabase/server'
 
 vi.mock('@/lib/github/app', () => ({
   deleteWebhookForRepo: vi.fn(),
@@ -9,10 +12,6 @@ vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: vi.fn(),
   createSupabaseServiceClient: vi.fn(),
 }))
-
-import { PATCH } from '@/app/api/workspaces/[id]/repos/[repoId]/route'
-import { updateWebhookEventsForRepo } from '@/lib/github/app'
-import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -76,7 +75,7 @@ function setupMocks({
         return { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: memberSingle }
       }
       if (table === 'repos') {
-        const obj = {
+        return {
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
           single: repoSingle,
@@ -88,7 +87,6 @@ function setupMocks({
             }),
           }),
         }
-        return obj
       }
       return {}
     }),

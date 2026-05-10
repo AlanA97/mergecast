@@ -1,6 +1,6 @@
 # Code Review Fixes Implementation Plan
 
-> **Status: ✅ Completed** — All tasks implemented and merged to `main`.  
+> **Status: ✅ Completed** - All tasks implemented and merged to `main`.  
 > Note: `005_security_and_idempotency.sql` referenced here was absorbed into the consolidated baseline migrations.  
 > The canonical schema is now: `001_schema.sql`, `002_functions.sql`, `003_rls.sql`.
 
@@ -19,7 +19,7 @@
 | File                                                   | Change                                                             |
 |--------------------------------------------------------|--------------------------------------------------------------------|
 | `package.json`                                         | Add `date-fns` dependency                                          |
-| `lib/types.ts`                                         | Create — shared Workspace + Entry interfaces                       |
+| `lib/types.ts`                                         | Create - shared Workspace + Entry interfaces                       |
 | `lib/quota.ts`                                         | Atomic reset via `.lt()` filter                                    |
 | `app/api/webhooks/github/route.ts`                     | try/catch for AI draft, check insert error, handle unique conflict |
 | `app/(app)/dashboard/page.tsx`                         | Null guard → redirect to `/onboarding`                             |
@@ -27,9 +27,9 @@
 | `lib/resend/email.ts`                                  | Guard null sendRecord, add inter-batch delay                       |
 | `app/(app)/dashboard/settings/page.tsx`                | Error state on `addRule` failure                                   |
 | `next.config.ts`                                       | Security headers                                                   |
-| `supabase/migrations/005_security_and_idempotency.sql` | Create — RLS fix, UNIQUE constraint, better index                  |
+| `supabase/migrations/005_security_and_idempotency.sql` | Create - RLS fix, UNIQUE constraint, better index                  |
 | `tests/lib/quota.test.ts`                              | Test for atomic reset condition                                    |
-| `tests/api/webhook.test.ts`                            | Create — duplicate PR handling                                     |
+| `tests/api/webhook.test.ts`                            | Create - duplicate PR handling                                     |
 
 ---
 
@@ -131,7 +131,7 @@ git commit -m "feat: add date-fns, shared Workspace/Entry types, fix toLocaleDat
 
 ---
 
-## Task 2: Database migration — security and idempotency
+## Task 2: Database migration - security and idempotency
 
 **Files:**
 - Create: `supabase/migrations/005_security_and_idempotency.sql`
@@ -227,9 +227,9 @@ it('atomic reset: second concurrent reset is a no-op', async () => {
 npm test tests/lib/quota.test.ts
 ```
 
-Expected: FAIL — `mockLt` is not called because the current code doesn't use `.lt()`.
+Expected: FAIL - `mockLt` is not called because the current code doesn't use `.lt()`.
 
-- [ ] **Step 3: Fix `lib/quota.ts` — add `.lt()` to the reset UPDATE**
+- [ ] **Step 3: Fix `lib/quota.ts` - add `.lt()` to the reset UPDATE**
 
 Replace the update block (lines 28–34):
 
@@ -268,7 +268,7 @@ export async function checkPublishQuota(
   const limit = PLAN_LIMITS[workspace.plan as Plan].publishes_per_month
 
   // Lazy reset: if reset_at is in the past, reset the counter.
-  // The .lt() filter makes this atomic — if two requests race here, only the
+  // The .lt() filter makes this atomic - if two requests race here, only the
   // first UPDATE finds a row where reset_at < now(); the second is a no-op.
   if (new Date(workspace.publish_quota_reset_at) < new Date()) {
     if (workspaceId) {
@@ -313,7 +313,7 @@ git commit -m "fix: atomic quota reset using .lt() filter to prevent double-rese
 
 ---
 
-## Task 4: Fix GitHub webhook — TOCTOU + unhandled rejection + unchecked insert
+## Task 4: Fix GitHub webhook - TOCTOU + unhandled rejection + unchecked insert
 
 **Files:**
 - Modify: `app/api/webhooks/github/route.ts`
@@ -331,7 +331,7 @@ Create `tests/api/webhook.test.ts`:
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Minimal mocks — we test the handler logic, not the Supabase/GitHub internals
+// Minimal mocks - we test the handler logic, not the Supabase/GitHub internals
 vi.mock('@/lib/github/webhook', () => ({
   validateGitHubWebhookSignature: vi.fn().mockResolvedValue(true),
   parsePullRequestEvent: vi.fn().mockReturnValue({
@@ -440,7 +440,7 @@ describe('GitHub webhook handler', () => {
 npm test tests/api/webhook.test.ts
 ```
 
-Expected: 3 FAIL — handler currently doesn't catch AI errors or check insert results.
+Expected: 3 FAIL - handler currently doesn't catch AI errors or check insert results.
 
 - [ ] **Step 3: Fix `app/api/webhooks/github/route.ts`**
 
@@ -518,12 +518,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, ignored: true })
   }
 
-  // AI draft generation — failures are non-fatal; we create the entry without a draft
+  // AI draft generation - failures are non-fatal; we create the entry without a draft
   let draft = { title: pr.prTitle, body: '' }
   try {
     draft = await generateChangelogDraft({ prTitle: pr.prTitle, prBody: pr.prBody })
   } catch {
-    // OpenAI unavailable — entry is created with empty draft; user can regenerate
+    // OpenAI unavailable - entry is created with empty draft; user can regenerate
   }
 
   const { error: insertError } = await service.from('changelog_entries').insert({
@@ -573,7 +573,7 @@ Expected: all passing.
 
 ```bash
 git add app/api/webhooks/github/route.ts tests/api/webhook.test.ts
-git commit -m "fix: webhook — catch AI draft errors, check insert result, handle unique conflict"
+git commit -m "fix: webhook - catch AI draft errors, check insert result, handle unique conflict"
 ```
 
 ---
@@ -643,7 +643,7 @@ git commit -m "fix: redirect to /onboarding when user has no workspace (null cra
 
 ---
 
-## Task 6: Fix admin — use app_metadata for admin check
+## Task 6: Fix admin - use app_metadata for admin check
 
 **Files:**
 - Modify: `app/admin/page.tsx:9`
@@ -684,21 +684,21 @@ Expected: all passing.
 
 ```bash
 git add app/admin/page.tsx
-git commit -m "fix: use app_metadata for admin check — user_metadata is client-writable"
+git commit -m "fix: use app_metadata for admin check - user_metadata is client-writable"
 ```
 
 ---
 
-## Task 7: Fix email batch — guard null sendRecord, add inter-batch delay
+## Task 7: Fix email batch - guard null sendRecord, add inter-batch delay
 
 **Files:**
 - Modify: `lib/resend/email.ts:53–98`
 
 **Problems:**
 1. If the `email_sends` INSERT fails, `sendRecord` is null. The `try/catch` silently sends emails with no audit record and no error logged.
-2. No delay between 100-email batches — at Scale tier (50 K subscribers = 500 batches) this fires all batches simultaneously and will hit Resend's rate limit.
+2. No delay between 100-email batches - at Scale tier (50 K subscribers = 500 batches) this fires all batches simultaneously and will hit Resend's rate limit.
 
-- [ ] **Step 1: Fix `lib/resend/email.ts` — guard null record, add inter-batch delay**
+- [ ] **Step 1: Fix `lib/resend/email.ts` - guard null record, add inter-batch delay**
 
 Replace the `sendPublishEmail` function body from the `const { data: sendRecord }` line onwards:
 
@@ -715,7 +715,7 @@ Replace the `sendPublishEmail` function body from the `const { data: sendRecord 
     .single()
 
   if (sendRecordError || !sendRecord) {
-    // Audit record failed to create — log and continue sending anyway
+    // Audit record failed to create - log and continue sending anyway
     console.error('email_sends insert failed:', sendRecordError)
   }
 
@@ -775,7 +775,7 @@ git commit -m "fix: guard null email_sends record, add 200ms inter-batch delay f
 
 ---
 
-## Task 8: Fix settings — addRule error feedback + parseInt NaN
+## Task 8: Fix settings - addRule error feedback + parseInt NaN
 
 **Files:**
 - Modify: `app/(app)/dashboard/settings/page.tsx:79–93`
@@ -921,9 +921,9 @@ git commit -m "fix: add X-Frame-Options, X-Content-Type-Options, Referrer-Policy
 - ✅ toLocaleDateString (Task 1)
 - ✅ Security headers (Task 9)
 - ✅ date-fns install (Task 1)
-- ⚠️ Subscribers pagination — intentionally deferred (UI-only, low severity, separate task)
-- ⚠️ Rate limiting on subscribe endpoint — deferred (needs infra, separate task)
-- ⚠️ Full nonce-based CSP — deferred (large standalone task, noted in Task 9)
+- ⚠️ Subscribers pagination - intentionally deferred (UI-only, low severity, separate task)
+- ⚠️ Rate limiting on subscribe endpoint - deferred (needs infra, separate task)
+- ⚠️ Full nonce-based CSP - deferred (large standalone task, noted in Task 9)
 - ⚠️ `as any` casts replaced only where touched; `lib/types.ts` created for future use
 
 **No placeholders found.**

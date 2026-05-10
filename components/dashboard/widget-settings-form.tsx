@@ -103,7 +103,7 @@ export function WidgetSettingsForm({ workspaceId }: { workspaceId: string }) {
           <Input
             value={settings.accent_color}
             onChange={e => setSettings(s => s ? { ...s, accent_color: e.target.value } : s)}
-            className="max-w-[120px] font-mono text-sm"
+            className="max-w-30 font-mono text-sm"
             placeholder="#000000"
           />
         </div>
