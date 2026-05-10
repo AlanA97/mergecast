@@ -154,7 +154,7 @@ You need to create a GitHub App that listens for PR webhooks. This is separate f
    - **Webhooks** → **Read and write** ← required to register per-repo webhook listeners
 4. Under **Subscribe to events**, tick:
    - **Pull request**
-   - **Create** ← required for tag-based mode (fires when a tag or branch is created)
+   - **Branch or tag creation** ← required for tag-based mode (webhook event type: `create`)
 5. After saving, copy:
    - **App ID** (numeric, at the top of the settings page) → `GITHUB_APP_ID`
    - **App slug** (from the URL — `github.com/apps/<slug>`) → `NEXT_PUBLIC_GITHUB_APP_SLUG`
