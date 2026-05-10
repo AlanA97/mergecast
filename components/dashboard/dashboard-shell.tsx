@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Menu } from 'lucide-react'
 import { Sidebar } from '@/components/dashboard/sidebar'
 
@@ -32,7 +32,7 @@ export function DashboardShell({ workspace, children }: DashboardShellProps) {
           <div className="relative z-50 h-full w-64">
             <Sidebar
               workspace={workspace}
-              onClose={() => setSidebarOpen(false)}
+              onCloseAction={() => setSidebarOpen(false)}
             />
           </div>
         </div>
