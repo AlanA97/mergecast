@@ -265,7 +265,7 @@ export default function SettingsPage() {
               onClick={togglePoweredBy}
               disabled={!canToggleBadge || savingBadge}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                changelogSettings.show_powered_by ? 'bg-foreground' : 'bg-muted'
+                changelogSettings.show_powered_by ? 'bg-foreground' : 'bg-input'
               } ${!canToggleBadge ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
               role="switch"
               aria-checked={changelogSettings.show_powered_by}
@@ -344,7 +344,7 @@ export default function SettingsPage() {
                     onClick={() => toggleTagMode(repo)}
                     disabled={togglingTagMode === repo.id}
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-                      repo.tag_based_mode ? 'bg-foreground' : 'bg-muted'
+                      repo.tag_based_mode ? 'bg-foreground' : 'bg-input'
                     } ${togglingTagMode === repo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     role="switch"
                     aria-checked={repo.tag_based_mode}
