@@ -239,6 +239,42 @@ describe('GitHub webhook — release event (published)', () => {
     expect(await res.json()).toMatchObject({ ok: true })
   })
 
+  it('ignores release events with action = deleted', async () => {
+    makeServiceMock({ repo: BASE_TAG_REPO })
+    const payload = JSON.stringify({ action: 'deleted', release: { tag_name: 'v1.0.0', published_at: null, prerelease: false, draft: false }, repository: { id: 1 } })
+    const res = await POST(makeRequest(payload, 'release'))
+    expect(res.status).toBe(200)
+    expect(getPRsBetweenTags).not.toHaveBeenCalled()
+  })
+
+  it('falls back to server time when published_at is null', async () => {
+    makeServiceMock({ repo: BASE_TAG_REPO })
+    ;(generateReleaseNotesDraft as ReturnType<typeof vi.fn>).mockResolvedValue({ title: 'v1.0.0', body: '- fix' })
+    const payload = JSON.stringify({
+      action: 'published',
+      release: { tag_name: 'v1.0.0', published_at: null, prerelease: false, draft: false },
+      repository: { id: 1, full_name: 'org/repo' },
+    })
+    const res = await POST(makeRequest(payload, 'release'))
+    // Should still process successfully, not crash or skip
+    expect(res.status).toBe(200)
+    expect(getPRsBetweenTags).toHaveBeenCalled()
+  })
+
+  it('falls back to server time when published_at is a malformed date string', async () => {
+    makeServiceMock({ repo: BASE_TAG_REPO })
+    ;(generateReleaseNotesDraft as ReturnType<typeof vi.fn>).mockResolvedValue({ title: 'v1.0.0', body: '- fix' })
+    const payload = JSON.stringify({
+      action: 'published',
+      release: { tag_name: 'v1.0.0', published_at: 'not-a-date', prerelease: false, draft: false },
+      repository: { id: 1, full_name: 'org/repo' },
+    })
+    const res = await POST(makeRequest(payload, 'release'))
+    // NaN guard fires — falls back to server time, processes normally
+    expect(res.status).toBe(200)
+    expect(getPRsBetweenTags).toHaveBeenCalled()
+  })
+
   it('returns 200 when repo is not found in tag mode (no enumeration leak)', async () => {
     makeServiceMock({ repo: null })
     const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))

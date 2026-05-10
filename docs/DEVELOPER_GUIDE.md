@@ -349,7 +349,7 @@ bun run test -- --reporter=verbose subscribe
 | `tests/api/public/subscribe.test.ts`        | Subscribe flow, rate limiting, limit enforcement   |
 | `tests/api/public/publish.test.ts`          | Publish flow, quota checks                         |
 | `tests/api/public/rss.test.ts`              | RSS feed generation                                |
-| `tests/api/webhook.test.ts`                 | GitHub webhook — pull_request and create events    |
+| `tests/api/webhook.test.ts`                 | GitHub webhook — pull_request and release events   |
 | `tests/api/workspaces/ignore-rules.test.ts` | Ignore rule CRUD                                   |
 
 ### Linting
@@ -434,7 +434,7 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 
 Tag-based mode creates one changelog entry per Git tag instead of one entry per merged PR. Enable it per repo in **Settings → Repositories**.
 
-**Prerequisites:** Flow 1 completed; ngrok tunnel active; GitHub App has `Contents: Read-only` permission and subscribes to the `create` event (see §3 GitHub App setup above).
+**Prerequisites:** Flow 1 completed; ngrok tunnel active; GitHub App has `Contents: Read-only` permission and subscribes to the `Releases` event (see §3 GitHub App setup above).
 
 #### Enable tag mode
 
@@ -442,11 +442,11 @@ Tag-based mode creates one changelog entry per Git tag instead of one entry per 
 2. Toggle **Tag-based mode** on for a connected repo
 3. The toggle calls `PATCH /api/workspaces/<id>/repos/<repoId>` which:
    - Updates `repos.tag_based_mode = true` in the DB
-   - Updates the GitHub webhook subscription to include the `create` event
+   - Updates the GitHub webhook subscription to include the `release` event
 
 **Check in Studio:** `repos.tag_based_mode` should be `true` for that row.
 
-**Check in GitHub:** Your repo → **Settings → Webhooks** → click the Mergecast webhook → confirm `create` is listed under *Events*.
+**Check in GitHub:** Your repo → **Settings → Webhooks** → click the Mergecast webhook → confirm `release` is listed under *Events*.
 
 #### Test a release publish
 
@@ -485,7 +485,7 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 1. Toggle **Tag-based mode** off in Settings → Repositories
 2. Merge a PR — a new entry should appear again (PR mode restored)
 
-**Check in GitHub:** The webhook should no longer list the `create` event.
+**Check in GitHub:** The webhook should no longer list the `release` event.
 
 ---
 
@@ -699,9 +699,9 @@ All must pass with zero errors.
 - [ ] Publish → appears on public changelog URL
 
 **Tag-based mode**
-- [ ] Enable tag mode in Settings → Repositories → GitHub webhook shows `create` event
+- [ ] Enable tag mode in Settings → Repositories → GitHub webhook shows `release` event
 - [ ] Merge a PR → no new entry (suppressed in tag mode)
-- [ ] Push a tag → entry appears with `tag_name` set and AI-generated release notes
+- [ ] Publish a GitHub Release → entry appears with `tag_name` set and AI-generated release notes
 - [ ] Disable tag mode → GitHub webhook reverts to `pull_request` only; merged PRs create entries again
 
 **Subscribers**

@@ -219,9 +219,13 @@ async function handleRelease(rawBody: string, signature: string): Promise<NextRe
     const octokit = await getInstallationOctokit(repo.github_installation_id)
 
     // Use the release's published_at as the upper-bound for PR attribution.
-    // This is more accurate than server clock — the release was explicitly
-    // published at this timestamp, so PRs merged after it belong to a future release.
-    const headTagDate = payload.release.published_at ?? new Date().toISOString()
+    // Validate before use: an invalid date string produces NaN, which silently
+    // bypasses the merged_at filter in getPRsBetweenTags and admits all PRs.
+    const rawPublishedAt = payload.release.published_at
+    const parsedMs = rawPublishedAt ? new Date(rawPublishedAt).getTime() : NaN
+    const headTagDate = Number.isFinite(parsedMs)
+      ? rawPublishedAt!
+      : new Date().toISOString()
 
     const previousTag = await getPreviousTag(octokit, owner, repoName, tagName)
     let prs = await getPRsBetweenTags(octokit, owner, repoName, previousTag, tagName, headTagDate)
