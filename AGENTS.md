@@ -23,7 +23,7 @@ components/           # ui/ (shadcn), dashboard/, public/
 lib/                  # Integrations: supabase/, github/, openai/, stripe/, resend/, plans.ts, quota.ts
 widget/               # Vanilla JS embeddable changelog drawer (esbuild → public/widget/widget.js)
 tests/                # Vitest — mirrors lib/ and api/ structure
-supabase/migrations/  # 7 SQL migration files (001_schema, 002_functions, 003_rls, 004_repos_webhook_id, 005_security_fixes, 006_rls_fixes, 007_revoke_public_execute)
+supabase/migrations/  # 3 SQL migration files (001_schema, 002_functions, 003_rls)
 ```
 
 Key integrations (all in `lib/`): **Supabase** (auth + DB + RLS), **OpenAI GPT-4o** (AI drafts), **Stripe** (billing), **GitHub App** (webhook → draft), **Resend** (double opt-in email).

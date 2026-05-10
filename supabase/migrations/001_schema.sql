@@ -1,8 +1,8 @@
 -- 001_schema.sql
 --
 -- Complete baseline schema for Mergecast.
--- All tables are created with their final constraints, CHECK rules, and
--- FK delete behaviours already applied — no incremental patches needed.
+-- All tables are created with their final columns, constraints, CHECK rules,
+-- and FK delete behaviours — no incremental patches needed.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- WORKSPACES
@@ -50,7 +50,9 @@ CREATE TABLE repos (
   full_name              TEXT        NOT NULL,
   github_installation_id BIGINT      NOT NULL,
   webhook_secret         TEXT        NOT NULL,
+  webhook_id             BIGINT,
   is_active              BOOLEAN     NOT NULL DEFAULT true,
+  tag_based_mode         BOOLEAN     NOT NULL DEFAULT false,
   connected_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -68,6 +70,7 @@ CREATE TABLE changelog_entries (
   pr_url        TEXT,
   pr_merged_at  TIMESTAMPTZ,
   pr_author     TEXT,
+  tag_name      TEXT,
   ai_draft      TEXT,
   title         TEXT,
   final_content TEXT,
@@ -84,15 +87,16 @@ CREATE TABLE changelog_entries (
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE TABLE subscribers (
-  id                 UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_id       UUID        NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-  email              TEXT        NOT NULL,
-  confirmed          BOOLEAN     NOT NULL DEFAULT false,
-  confirmation_token TEXT        UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
-  unsubscribe_token  TEXT        UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
-  subscribed_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  confirmed_at       TIMESTAMPTZ,
-  unsubscribed_at    TIMESTAMPTZ,
+  id                              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id                    UUID        NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  email                           TEXT        NOT NULL,
+  confirmed                       BOOLEAN     NOT NULL DEFAULT false,
+  confirmation_token              TEXT        UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
+  confirmation_token_expires_at   TIMESTAMPTZ,
+  unsubscribe_token               TEXT        UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
+  subscribed_at                   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  confirmed_at                    TIMESTAMPTZ,
+  unsubscribed_at                 TIMESTAMPTZ,
   UNIQUE (workspace_id, email)
 );
 
@@ -183,10 +187,16 @@ CREATE INDEX idx_entries_workspace_published
   WHERE status = 'published';
 
 -- changelog_entries: unique partial to enforce one entry per PR per repo,
--- while excluding manually created entries (pr_number IS NULL)
+-- while excluding tag entries and manually created entries (pr_number IS NULL)
 CREATE UNIQUE INDEX idx_entries_repo_pr_unique
   ON changelog_entries (repo_id, pr_number)
   WHERE pr_number IS NOT NULL;
+
+-- changelog_entries: unique partial to enforce one entry per tag per repo
+-- (idempotency guard for duplicate release webhook deliveries)
+CREATE UNIQUE INDEX idx_entries_repo_tag_unique
+  ON changelog_entries (repo_id, tag_name)
+  WHERE tag_name IS NOT NULL;
 
 -- subscribers: full-table scanned on every publish email send
 CREATE INDEX idx_subscribers_workspace_id ON subscribers (workspace_id);

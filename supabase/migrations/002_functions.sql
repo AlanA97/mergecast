@@ -3,6 +3,9 @@
 -- All SECURITY DEFINER functions and updated_at triggers.
 -- Every function pins its search_path to prevent search-path injection
 -- (Supabase security advisory: function_search_path_mutable).
+-- EXECUTE is revoked from PUBLIC at the bottom — service_role is a
+-- superuser-equivalent and bypasses privilege checks, so it continues
+-- to work without an explicit grant.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- is_workspace_member
@@ -29,11 +32,12 @@ $$;
 -- ─────────────────────────────────────────────────────────────────────────────
 -- increment_entry_views
 --
--- Bulk-increment view_count for a set of entries.
--- Called fire-and-forget from SSR pages; no error propagation needed.
+-- Bulk-increment view_count for a set of entries, scoped to a workspace so
+-- the SECURITY DEFINER function cannot touch entries in other workspaces.
+-- Called fire-and-forget from SSR pages via the service-role client.
 -- ─────────────────────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION increment_entry_views(entry_ids UUID[])
+CREATE OR REPLACE FUNCTION increment_entry_views(entry_ids UUID[], p_workspace_id UUID)
 RETURNS void
 LANGUAGE sql
 SECURITY DEFINER
@@ -41,7 +45,8 @@ SET search_path = public, pg_temp
 AS $$
   UPDATE changelog_entries
   SET    view_count = view_count + 1
-  WHERE  id = ANY(entry_ids);
+  WHERE  id = ANY(entry_ids)
+  AND    workspace_id = p_workspace_id;
 $$;
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -151,3 +156,18 @@ CREATE TRIGGER trg_widget_settings_updated_at
 CREATE TRIGGER trg_changelog_settings_updated_at
   BEFORE UPDATE ON changelog_settings
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Lock down EXECUTE on all internal functions
+--
+-- PostgreSQL grants EXECUTE to PUBLIC by default. Revoking from PUBLIC removes
+-- the privilege for all roles. service_role is a superuser-equivalent and
+-- bypasses privilege checks, so it continues to work without an explicit grant.
+-- All of these functions are called exclusively via the service-role client
+-- in application code — they are never legitimately called via the REST API.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+REVOKE EXECUTE ON FUNCTION is_workspace_member(uuid)                         FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION increment_entry_views(uuid[], uuid)               FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION increment_publish_count(uuid)                     FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION create_workspace_with_defaults(text, text, uuid)  FROM PUBLIC;

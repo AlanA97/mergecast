@@ -73,17 +73,12 @@ Keep these — you'll need them for the env file in the next step.
 supabase db reset
 ```
 
-`db reset` drops and recreates the local database, then runs all eight migrations in order:
+`db reset` drops and recreates the local database, then runs all three migrations in order:
 
 ```
-supabase/migrations/001_schema.sql             # tables, indexes, constraints
-supabase/migrations/002_functions.sql          # RPC functions, triggers
-supabase/migrations/003_rls.sql                # Row Level Security policies
-supabase/migrations/004_repos_webhook_id.sql   # webhook_id column on repos
-supabase/migrations/005_security_fixes.sql     # scoped view-count RPC, token expiry column
-supabase/migrations/006_rls_fixes.sql          # tighten RLS, revoke anon/authenticated table access
-supabase/migrations/007_revoke_public_execute.sql  # revoke EXECUTE on internal functions from PUBLIC
-supabase/migrations/008_tag_based_mode.sql     # tag_based_mode on repos, tag_name on entries, unique index
+supabase/migrations/001_schema.sql    # all tables, columns, indexes, and constraints
+supabase/migrations/002_functions.sql # RPC functions, triggers, EXECUTE revokes
+supabase/migrations/003_rls.sql       # Row Level Security policies, SELECT revokes
 ```
 
 Re-run this command any time you want a clean slate.
@@ -612,7 +607,7 @@ Expected: `401 Unauthorized`
 
 Before deploying, you need live (not local) versions of every service. Follow the steps in [`docs/superpowers/specs/2026-04-27-prelaunch-checklist.md`](superpowers/specs/2026-04-27-prelaunch-checklist.md) §2 for:
 
-- Supabase cloud project (run all 8 migrations via SQL editor in order: 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008)
+- Supabase cloud project (run all 3 migrations via SQL editor in order: 001 → 002 → 003)
 - Stripe live products and webhook endpoint
 - GitHub App pointing to `https://mergecast.co/api/webhooks/github`
 - Resend domain verification

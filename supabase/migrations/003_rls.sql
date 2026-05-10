@@ -3,6 +3,10 @@
 -- Row Level Security: enable RLS on every table, then define all policies.
 -- Service-role connections bypass RLS entirely, so these rules only apply
 -- to requests made through the anon / authenticated Supabase client keys.
+--
+-- Table-level SELECT privileges are also revoked from anon and authenticated
+-- at the bottom — all data reads go through the service-role client with
+-- explicit auth/membership checks in application code.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Enable RLS
@@ -34,10 +38,14 @@ CREATE POLICY "workspace_member_update" ON workspaces
 -- Mutations (INSERT/UPDATE) are done exclusively via the service role so a
 -- member cannot add themselves to foreign workspaces through the client key.
 -- Members can read their own memberships and remove themselves (leave).
+--
+-- auth.uid() is wrapped in (SELECT auth.uid()) so Postgres evaluates it once
+-- per statement rather than once per row, which is important for performance
+-- on tables with many members.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE POLICY "own_memberships" ON workspace_members
-  FOR SELECT USING (user_id = auth.uid()); -- rewritten in 006_rls_fixes.sql (per-row re-evaluation)
+  FOR SELECT USING (user_id = (SELECT auth.uid()));
 
 CREATE POLICY "workspace_members_no_insert" ON workspace_members
   FOR INSERT WITH CHECK (false);
@@ -46,7 +54,7 @@ CREATE POLICY "workspace_members_no_update" ON workspace_members
   FOR UPDATE USING (false);
 
 CREATE POLICY "workspace_members_self_delete" ON workspace_members
-  FOR DELETE USING (user_id = auth.uid()); -- rewritten in 006_rls_fixes.sql (per-row re-evaluation)
+  FOR DELETE USING (user_id = (SELECT auth.uid()));
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- REPOS
@@ -58,27 +66,29 @@ CREATE POLICY "repos_member_all" ON repos
 -- ─────────────────────────────────────────────────────────────────────────────
 -- CHANGELOG ENTRIES
 --
--- Workspace members can do everything; the public can read published entries
--- (used by the public changelog page and embeddable widget).
+-- Workspace members can do everything. Public reads (changelog page, widget,
+-- RSS) all go through the service-role client — there is no need for an anon
+-- RLS policy here.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE POLICY "entries_member_all" ON changelog_entries
   FOR ALL USING (is_workspace_member(workspace_id));
 
-CREATE POLICY "entries_public_read" ON changelog_entries
-  FOR SELECT USING (status = 'published'); -- dropped in 006_rls_fixes.sql (anon GraphQL exposure)
-
 -- ─────────────────────────────────────────────────────────────────────────────
 -- SUBSCRIBERS
 --
--- Members can read and delete subscribers; anyone can subscribe (public INSERT).
+-- Members can read and delete subscribers.
+-- Public INSERT is allowed but restricted to real workspace IDs to prevent
+-- phantom subscriptions via direct DB access.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE POLICY "subscribers_member_read" ON subscribers
   FOR SELECT USING (is_workspace_member(workspace_id));
 
 CREATE POLICY "subscribers_public_insert" ON subscribers
-  FOR INSERT WITH CHECK (true); -- tightened in 006_rls_fixes.sql
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM workspaces WHERE id = workspace_id)
+  );
 
 CREATE POLICY "subscribers_member_delete" ON subscribers
   FOR DELETE USING (is_workspace_member(workspace_id));
@@ -104,3 +114,22 @@ CREATE POLICY "ignore_rules_member_all" ON pr_ignore_rules
   FOR ALL
   USING     (is_workspace_member(workspace_id))
   WITH CHECK (is_workspace_member(workspace_id));
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Revoke table-level SELECT from anon and authenticated
+--
+-- Supabase grants SELECT on all public tables to anon and authenticated by
+-- default, which makes them visible in the auto-generated GraphQL schema even
+-- when RLS would block the actual rows. Revoking here removes the schema
+-- exposure entirely. All legitimate data reads use the service-role client.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+REVOKE SELECT ON changelog_entries  FROM anon, authenticated;
+REVOKE SELECT ON changelog_settings FROM anon, authenticated;
+REVOKE SELECT ON email_sends        FROM anon, authenticated;
+REVOKE SELECT ON pr_ignore_rules    FROM anon, authenticated;
+REVOKE SELECT ON repos              FROM anon, authenticated;
+REVOKE SELECT ON subscribers        FROM anon, authenticated;
+REVOKE SELECT ON widget_settings    FROM anon, authenticated;
+REVOKE SELECT ON workspace_members  FROM anon, authenticated;
+REVOKE SELECT ON workspaces         FROM anon, authenticated;
