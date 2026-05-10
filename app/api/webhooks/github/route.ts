@@ -27,8 +27,8 @@ export async function POST(request: Request) {
     return handlePullRequest(rawBody, signature)
   }
 
-  if (event === 'create') {
-    return handleTagCreate(rawBody, signature)
+  if (event === 'release') {
+    return handleRelease(rawBody, signature)
   }
 
   return NextResponse.json({ ok: true })
@@ -133,30 +133,35 @@ async function handlePullRequest(rawBody: string, signature: string): Promise<Ne
 }
 
 // ---------------------------------------------------------------------------
-// create (tag push) handler
+// release (published) handler
 // ---------------------------------------------------------------------------
 
-// GitHub create event payload shape (relevant fields only)
-interface CreatePayload {
-  ref: string
-  ref_type: string
+// GitHub release event payload shape (relevant fields only)
+interface ReleasePayload {
+  action: string
+  release: {
+    tag_name: string
+    published_at: string | null
+    prerelease: boolean
+    draft: boolean
+  }
   repository: { id: number; full_name: string }
 }
 
-async function handleTagCreate(rawBody: string, signature: string): Promise<NextResponse> {
-  let payload: CreatePayload
+async function handleRelease(rawBody: string, signature: string): Promise<NextResponse> {
+  let payload: ReleasePayload
   try {
-    payload = JSON.parse(rawBody) as CreatePayload
+    payload = JSON.parse(rawBody) as ReleasePayload
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // Only process tag creation (not branch creation)
-  if (payload.ref_type !== 'tag') {
+  // Only process published releases — ignore created (draft), edited, deleted, etc.
+  if (payload.action !== 'published') {
     return NextResponse.json({ ok: true })
   }
 
-  const tagName = payload.ref
+  const tagName = payload.release?.tag_name
   const githubRepoId = payload.repository?.id
 
   // Validate tag name against allowlist before writing anything to the DB or
@@ -213,10 +218,10 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
   try {
     const octokit = await getInstallationOctokit(repo.github_installation_id)
 
-    // Fetch the actual tag creation timestamp from GitHub instead of relying
-    // on server clock — webhook delivery can be delayed by minutes, causing
-    // wrong PR attribution if we use new Date() as the upper bound.
-    const headTagDate = await getTagTimestamp(octokit, owner, repoName, tagName)
+    // Use the release's published_at as the upper-bound for PR attribution.
+    // This is more accurate than server clock — the release was explicitly
+    // published at this timestamp, so PRs merged after it belong to a future release.
+    const headTagDate = payload.release.published_at ?? new Date().toISOString()
 
     const previousTag = await getPreviousTag(octokit, owner, repoName, tagName)
     let prs = await getPRsBetweenTags(octokit, owner, repoName, previousTag, tagName, headTagDate)
@@ -275,42 +280,3 @@ async function handleTagCreate(rawBody: string, signature: string): Promise<Next
   return NextResponse.json({ ok: true, ...(empty ? { empty: true } : {}) })
 }
 
-// ---------------------------------------------------------------------------
-// Helper: resolve actual tag creation timestamp from GitHub
-// ---------------------------------------------------------------------------
-
-/**
- * Returns the ISO timestamp of when a tag was created.
- * For annotated tags, uses the tagger date. For lightweight tags, uses the
- * committer date of the tagged commit. Falls back to server time on error.
- */
-async function getTagTimestamp(
-  octokit: Awaited<ReturnType<typeof getInstallationOctokit>>,
-  owner: string,
-  repo: string,
-  tagName: string
-): Promise<string> {
-  try {
-    const { data: ref } = await octokit.rest.git.getRef({ owner, repo, ref: `tags/${tagName}` })
-    if (ref.object.type === 'tag') {
-      // Annotated tag: the ref points to a tag object which has a tagger.date
-      const { data: tagObj } = await octokit.rest.git.getTag({
-        owner,
-        repo,
-        tag_sha: ref.object.sha,
-      })
-      return tagObj.tagger.date
-    } else {
-      // Lightweight tag: the ref points directly to a commit
-      const { data: commit } = await octokit.rest.repos.getCommit({
-        owner,
-        repo,
-        ref: ref.object.sha,
-      })
-      return commit.commit.committer?.date ?? new Date().toISOString()
-    }
-  } catch {
-    // Fallback to server time if GitHub API call fails
-    return new Date().toISOString()
-  }
-}

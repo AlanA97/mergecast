@@ -139,12 +139,12 @@ describe('PATCH /api/workspaces/[id]/repos/[repoId]', () => {
     expect(updateWebhookEventsForRepo).not.toHaveBeenCalled()
   })
 
-  it('enables tag mode: updates DB and adds create event to webhook', async () => {
+  it('enables tag mode: updates DB and adds release event to webhook', async () => {
     setupMocks({ repo: { ...BASE_REPO, tag_based_mode: false } })
     const res = await PATCH(makeRequest({ tag_based_mode: true }), makeParams())
     expect(res.status).toBe(200)
     expect(updateWebhookEventsForRepo).toHaveBeenCalledWith(
-      123, 'org', 'repo', 456, ['pull_request', 'create']
+      123, 'org', 'repo', 456, ['pull_request', 'release']
     )
   })
 
