@@ -412,7 +412,7 @@ The webhook handler looks up the incoming `repo.id` in the `repos` table. You ne
 ```bash
 # Replace REPO_ID with the github_repo_id from your repos table
 # Replace WEBHOOK_SECRET with that row's webhook_secret (not GITHUB_APP_WEBHOOK_SECRET)
-PAYLOAD='{"action":"closed","pull_request":{"merged":true,"number":1,"title":"Fix login bug","body":"Fixes the login redirect issue","user":{"login":"octocat"},"merged_at":"2026-01-01T00:00:00Z","base":{"repo":{"id":REPO_ID,"full_name":"org/repo","name":"repo"}},"labels":[]}}'
+PAYLOAD='{"action":"closed","pull_request":{"merged":true,"number":1,"title":"Fix login bug","body":"Fixes the login redirect issue","html_url":"https://github.com/org/repo/pull/1","user":{"login":"octocat"},"merged_at":"2026-01-01T00:00:00Z","labels":[]},"repository":{"id":REPO_ID,"full_name":"org/repo","name":"repo"}}'
 
 curl -X POST http://localhost:3000/api/webhooks/github \
   -H "Content-Type: application/json" \
@@ -423,7 +423,7 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 
 > The per-repo `webhook_secret` in the `repos` table is distinct from the app-level `GITHUB_APP_WEBHOOK_SECRET`. Each connected repo gets its own secret generated at connect time.
 
-> **Signature validation note:** The webhook handler returns `200 { ok: true }` for both unrecognised repo IDs and invalid signatures (uniform response to prevent repo-ID enumeration). A successful payload creates a `changelog_entries` row — that is the only confirmation that the signature was valid.
+> **Signature validation note:** The webhook handler returns `200 { ok: true }` for both unrecognized repo IDs and invalid signatures (uniform response to prevent repo-ID enumeration). A successful payload creates a `changelog_entries` row — that is the only confirmation that the signature was valid.
 
 ### Flow 2b: Tag-based changelog mode
 
