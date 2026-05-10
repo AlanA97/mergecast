@@ -104,9 +104,14 @@ function makeServiceMock({
   })
 }
 
-const CREATE_PAYLOAD = JSON.stringify({
-  ref: 'v1.0.0',
-  ref_type: 'tag',
+const RELEASE_PAYLOAD = JSON.stringify({
+  action: 'published',
+  release: {
+    tag_name: 'v1.0.0',
+    published_at: new Date('2024-01-15T00:00:00Z').toISOString(),
+    prerelease: false,
+    draft: false,
+  },
   repository: { id: 1, full_name: 'org/repo' },
 })
 
@@ -163,37 +168,38 @@ describe('GitHub webhook — pull_request event', () => {
 })
 
 // ---------------------------------------------------------------------------
-// create event tests
+// release event (published) tests
 // ---------------------------------------------------------------------------
 
-describe('GitHub webhook — create event (tag push)', () => {
+describe('GitHub webhook — release event (published)', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
-  it('ignores create events with ref_type = branch', async () => {
+  it('ignores release events with action != published (e.g. created draft)', async () => {
     makeServiceMock({ repo: BASE_TAG_REPO })
-    const res = await POST(makeRequest(JSON.stringify({ ref: 'main', ref_type: 'branch', repository: { id: 1 } }), 'create'))
+    const payload = JSON.stringify({ action: 'created', release: { tag_name: 'v1.0.0', published_at: null, prerelease: false, draft: true }, repository: { id: 1 } })
+    const res = await POST(makeRequest(payload, 'release'))
     expect(res.status).toBe(200)
     expect(getPRsBetweenTags).not.toHaveBeenCalled()
   })
 
-  it('ignores create events for repos not in tag_based_mode', async () => {
+  it('ignores release events for repos not in tag_based_mode', async () => {
     makeServiceMock({ repo: BASE_PR_REPO }) // tag_based_mode: false
-    const res = await POST(makeRequest(CREATE_PAYLOAD, 'create'))
+    const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
     expect(res.status).toBe(200)
     expect(getPRsBetweenTags).not.toHaveBeenCalled()
   })
 
   it('rejects invalid tag names (XSS vector)', async () => {
     makeServiceMock({ repo: BASE_TAG_REPO })
-    const payload = JSON.stringify({ ref: '<script>alert(1)</script>', ref_type: 'tag', repository: { id: 1 } })
-    const res = await POST(makeRequest(payload, 'create'))
+    const payload = JSON.stringify({ action: 'published', release: { tag_name: '<script>alert(1)</script>', published_at: new Date().toISOString(), prerelease: false, draft: false }, repository: { id: 1 } })
+    const res = await POST(makeRequest(payload, 'release'))
     expect(res.status).toBe(200)
     expect(getPRsBetweenTags).not.toHaveBeenCalled()
   })
 
   it('returns duplicate when tag entry already exists', async () => {
     makeServiceMock({ repo: BASE_TAG_REPO, existing: { id: 'entry-1' } })
-    const res = await POST(makeRequest(CREATE_PAYLOAD, 'create'))
+    const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.duplicate).toBe(true)
@@ -206,7 +212,7 @@ describe('GitHub webhook — create event (tag push)', () => {
       title: 'v1.0.0 — First release',
       body: '- Added login\n- Added dashboard',
     })
-    const res = await POST(makeRequest(CREATE_PAYLOAD, 'create'))
+    const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
     expect(res.status).toBe(200)
     expect(getPRsBetweenTags).toHaveBeenCalled()
     expect(generateReleaseNotesDraft).toHaveBeenCalled()
@@ -216,7 +222,7 @@ describe('GitHub webhook — create event (tag push)', () => {
   it('creates entry with empty body when no PRs between tags', async () => {
     makeServiceMock({ repo: BASE_TAG_REPO })
     ;(getPRsBetweenTags as ReturnType<typeof vi.fn>).mockResolvedValue([])
-    const res = await POST(makeRequest(CREATE_PAYLOAD, 'create'))
+    const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.ok).toBe(true)
@@ -227,15 +233,51 @@ describe('GitHub webhook — create event (tag push)', () => {
   it('creates entry with placeholder when draft generation throws', async () => {
     makeServiceMock({ repo: BASE_TAG_REPO })
     ;(generateReleaseNotesDraft as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('OpenAI error'))
-    const res = await POST(makeRequest(CREATE_PAYLOAD, 'create'))
+    const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
     // Should still return 200 — entry created with fallback text
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ ok: true })
   })
 
+  it('ignores release events with action = deleted', async () => {
+    makeServiceMock({ repo: BASE_TAG_REPO })
+    const payload = JSON.stringify({ action: 'deleted', release: { tag_name: 'v1.0.0', published_at: null, prerelease: false, draft: false }, repository: { id: 1 } })
+    const res = await POST(makeRequest(payload, 'release'))
+    expect(res.status).toBe(200)
+    expect(getPRsBetweenTags).not.toHaveBeenCalled()
+  })
+
+  it('falls back to server time when published_at is null', async () => {
+    makeServiceMock({ repo: BASE_TAG_REPO })
+    ;(generateReleaseNotesDraft as ReturnType<typeof vi.fn>).mockResolvedValue({ title: 'v1.0.0', body: '- fix' })
+    const payload = JSON.stringify({
+      action: 'published',
+      release: { tag_name: 'v1.0.0', published_at: null, prerelease: false, draft: false },
+      repository: { id: 1, full_name: 'org/repo' },
+    })
+    const res = await POST(makeRequest(payload, 'release'))
+    // Should still process successfully, not crash or skip
+    expect(res.status).toBe(200)
+    expect(getPRsBetweenTags).toHaveBeenCalled()
+  })
+
+  it('falls back to server time when published_at is a malformed date string', async () => {
+    makeServiceMock({ repo: BASE_TAG_REPO })
+    ;(generateReleaseNotesDraft as ReturnType<typeof vi.fn>).mockResolvedValue({ title: 'v1.0.0', body: '- fix' })
+    const payload = JSON.stringify({
+      action: 'published',
+      release: { tag_name: 'v1.0.0', published_at: 'not-a-date', prerelease: false, draft: false },
+      repository: { id: 1, full_name: 'org/repo' },
+    })
+    const res = await POST(makeRequest(payload, 'release'))
+    // NaN guard fires — falls back to server time, processes normally
+    expect(res.status).toBe(200)
+    expect(getPRsBetweenTags).toHaveBeenCalled()
+  })
+
   it('returns 200 when repo is not found in tag mode (no enumeration leak)', async () => {
     makeServiceMock({ repo: null })
-    const res = await POST(makeRequest(CREATE_PAYLOAD, 'create'))
+    const res = await POST(makeRequest(RELEASE_PAYLOAD, 'release'))
     expect(res.status).toBe(200)
   })
 })

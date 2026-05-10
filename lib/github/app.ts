@@ -51,7 +51,7 @@ export async function registerWebhookForRepo(
   return data.id
 }
 
-const ALLOWED_WEBHOOK_EVENTS = new Set(['pull_request', 'create'])
+const ALLOWED_WEBHOOK_EVENTS = new Set(['pull_request', 'release'])
 
 export async function updateWebhookEventsForRepo(
   installationId: number,

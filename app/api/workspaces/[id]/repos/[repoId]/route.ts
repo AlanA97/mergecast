@@ -64,7 +64,7 @@ export async function PATCH(
     if (!owner || !repoName) {
       return NextResponse.json({ error: 'Invalid repo full_name' }, { status: 500 })
     }
-    const events = tag_based_mode ? ['pull_request', 'create'] : ['pull_request']
+    const events = tag_based_mode ? ['pull_request', 'release'] : ['pull_request']
     try {
       await updateWebhookEventsForRepo(
         repo.github_installation_id,

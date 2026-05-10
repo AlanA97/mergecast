@@ -1,10 +1,10 @@
 -- Migration 008: tag-based changelog mode
 --
--- Adds a per-repo toggle so teams can opt into one changelog entry per Git tag
--- instead of one per merged PR.  When tag_based_mode = true on a repo:
+-- Adds a per-repo toggle so teams can opt into one changelog entry per GitHub
+-- Release instead of one per merged PR.  When tag_based_mode = true on a repo:
 --   • pull_request webhooks are silently skipped (no entry created per PR)
---   • create webhooks (ref_type = 'tag') aggregate all PRs since the previous
---     tag into a single changelog_entries row.
+--   • release webhooks (action = 'published') aggregate all PRs since the
+--     previous release into a single changelog_entries row.
 
 ALTER TABLE repos ADD COLUMN IF NOT EXISTS tag_based_mode BOOLEAN NOT NULL DEFAULT false;
 

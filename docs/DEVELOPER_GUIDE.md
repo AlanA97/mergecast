@@ -154,7 +154,7 @@ You need to create a GitHub App that listens for PR webhooks. This is separate f
    - **Webhooks** → **Read and write** ← required to register per-repo webhook listeners
 4. Under **Subscribe to events**, tick:
    - **Pull request**
-   - **Branch or tag creation** ← required for tag-based mode (webhook event type: `create`)
+   - **Releases** ← required for tag-based mode (fires on `published` action; webhook event type: `release`)
 5. After saving, copy:
    - **App ID** (numeric, at the top of the settings page) → `GITHUB_APP_ID`
    - **App slug** (from the URL — `github.com/apps/<slug>`) → `NEXT_PUBLIC_GITHUB_APP_SLUG`
@@ -349,7 +349,7 @@ bun run test -- --reporter=verbose subscribe
 | `tests/api/public/subscribe.test.ts`        | Subscribe flow, rate limiting, limit enforcement   |
 | `tests/api/public/publish.test.ts`          | Publish flow, quota checks                         |
 | `tests/api/public/rss.test.ts`              | RSS feed generation                                |
-| `tests/api/webhook.test.ts`                 | GitHub webhook — pull_request and create events    |
+| `tests/api/webhook.test.ts`                 | GitHub webhook — pull_request and release events   |
 | `tests/api/workspaces/ignore-rules.test.ts` | Ignore rule CRUD                                   |
 
 ### Linting
@@ -434,7 +434,7 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 
 Tag-based mode creates one changelog entry per Git tag instead of one entry per merged PR. Enable it per repo in **Settings → Repositories**.
 
-**Prerequisites:** Flow 1 completed; ngrok tunnel active; GitHub App has `Contents: Read-only` permission and subscribes to the `create` event (see §3 GitHub App setup above).
+**Prerequisites:** Flow 1 completed; ngrok tunnel active; GitHub App has `Contents: Read-only` permission and subscribes to the `Releases` event (see §3 GitHub App setup above).
 
 #### Enable tag mode
 
@@ -442,37 +442,38 @@ Tag-based mode creates one changelog entry per Git tag instead of one entry per 
 2. Toggle **Tag-based mode** on for a connected repo
 3. The toggle calls `PATCH /api/workspaces/<id>/repos/<repoId>` which:
    - Updates `repos.tag_based_mode = true` in the DB
-   - Updates the GitHub webhook subscription to include the `create` event
+   - Updates the GitHub webhook subscription to include the `release` event
 
 **Check in Studio:** `repos.tag_based_mode` should be `true` for that row.
 
-**Check in GitHub:** Your repo → **Settings → Webhooks** → click the Mergecast webhook → confirm `create` is listed under *Events*.
+**Check in GitHub:** Your repo → **Settings → Webhooks** → click the Mergecast webhook → confirm `release` is listed under *Events*.
 
-#### Test a tag push
+#### Test a release publish
 
 1. Merge a PR on the connected repo — **no new entry should appear** (PR mode is suppressed)
-2. Push a tag to the repo:
+2. Push a tag and publish a GitHub Release for it:
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
    ```
+   Then go to your repo on GitHub → **Releases → Draft a new release** → select `v1.0.0` → click **Publish release**.
 3. Within ~5 seconds, a new `changelog_entries` row should appear with `tag_name = 'v1.0.0'` and `pr_number = null`
-4. The entry should show in the dashboard under **Drafts** with an AI-generated summary of all PRs merged since the previous tag
+4. The entry should show in the dashboard under **Drafts** with an AI-generated summary of all PRs merged since the previous release
 
-**Shortcut — test without a real tag push:**
+**Shortcut — test without publishing a real GitHub Release:**
 
 ```bash
 # Replace REPO_ID with the github_repo_id, WEBHOOK_SECRET with the row's webhook_secret
-PAYLOAD='{"ref":"v1.0.0","ref_type":"tag","repository":{"id":REPO_ID,"full_name":"org/repo"}}'
+PAYLOAD='{"action":"published","release":{"tag_name":"v1.0.0","published_at":"2026-01-01T00:00:00Z","prerelease":false,"draft":false},"repository":{"id":REPO_ID,"full_name":"org/repo"}}'
 
 curl -X POST http://localhost:3000/api/webhooks/github \
   -H "Content-Type: application/json" \
-  -H "X-GitHub-Event: create" \
+  -H "X-GitHub-Event: release" \
   -H "X-Hub-Signature-256: sha256=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "WEBHOOK_SECRET" | awk '{print $2}')" \
   -d "$PAYLOAD"
 ```
 
-**Branch events are silently ignored** (only `ref_type: tag` is processed).
+**Non-published actions are silently ignored** (only `action: published` is processed — draft creation, edits, deletes, etc. are all skipped).
 
 #### Test regenerate for tag entries
 
@@ -484,7 +485,7 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 1. Toggle **Tag-based mode** off in Settings → Repositories
 2. Merge a PR — a new entry should appear again (PR mode restored)
 
-**Check in GitHub:** The webhook should no longer list the `create` event.
+**Check in GitHub:** The webhook should no longer list the `release` event.
 
 ---
 
@@ -698,9 +699,9 @@ All must pass with zero errors.
 - [ ] Publish → appears on public changelog URL
 
 **Tag-based mode**
-- [ ] Enable tag mode in Settings → Repositories → GitHub webhook shows `create` event
+- [ ] Enable tag mode in Settings → Repositories → GitHub webhook shows `release` event
 - [ ] Merge a PR → no new entry (suppressed in tag mode)
-- [ ] Push a tag → entry appears with `tag_name` set and AI-generated release notes
+- [ ] Publish a GitHub Release → entry appears with `tag_name` set and AI-generated release notes
 - [ ] Disable tag mode → GitHub webhook reverts to `pull_request` only; merged PRs create entries again
 
 **Subscribers**
