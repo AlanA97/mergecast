@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, Code2, Settings, CreditCard, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, BarChart2, Code2, Settings, CreditCard, LogOut } from 'lucide-react'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 const NAV = [
   { href: '/dashboard', label: 'Entries', icon: LayoutDashboard },
   { href: '/dashboard/subscribers', label: 'Subscribers', icon: Users },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart2 },
   { href: '/dashboard/widget', label: 'Widget', icon: Code2 },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
