@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase/server'
 import { format } from 'date-fns'
 import { Card, CardHeader, CardDescription, CardTitle } from '@/components/ui/card'
@@ -18,7 +19,9 @@ export default async function AnalyticsPage() {
     .single()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const workspaceId = (membership?.workspaces as any)?.id
+  const workspaceId = (membership?.workspaces as any)?.id as string | undefined
+  if (!workspaceId) redirect('/dashboard')
+
   const analytics = await getWorkspaceAnalytics(workspaceId)
   const { kpis, subscriber_growth, publishing_cadence, top_entries, email_history } = analytics
 
@@ -32,20 +35,30 @@ export default async function AnalyticsPage() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total views</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">{kpis.total_views.toLocaleString()}</CardTitle>
+            <CardDescription
+              title="Every page load of your public changelog increments all visible entries. This counts appearances, not individual reads."
+            >
+              Impressions
+            </CardDescription>
+            <CardTitle className="text-2xl tabular-nums">
+              {kpis.total_impressions.toLocaleString()}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Active subscribers</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">{kpis.active_subscribers.toLocaleString()}</CardTitle>
+            <CardTitle className="text-2xl tabular-nums">
+              {kpis.active_subscribers.toLocaleString()}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Published entries</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">{kpis.published_entries.toLocaleString()}</CardTitle>
+            <CardTitle className="text-2xl tabular-nums">
+              {kpis.published_entries.toLocaleString()}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
@@ -64,9 +77,9 @@ export default async function AnalyticsPage() {
         publishingCadence={publishing_cadence}
       />
 
-      {/* Top entries by views */}
+      {/* Top entries by impressions */}
       <section>
-        <h2 className="mb-3 text-sm font-medium text-muted-foreground">Top entries by views</h2>
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">Top entries by impressions</h2>
         {top_entries.length === 0 ? (
           <div className="rounded-lg border border-dashed p-12 text-center">
             <p className="text-sm text-muted-foreground">No published entries yet.</p>
@@ -78,7 +91,7 @@ export default async function AnalyticsPage() {
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Title</th>
                   <th className="px-4 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap">Published</th>
-                  <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Views</th>
+                  <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Impressions</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,7 +101,9 @@ export default async function AnalyticsPage() {
                     <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">
                       {format(new Date(entry.published_at), 'MMM d, yyyy')}
                     </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{entry.view_count.toLocaleString()}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">
+                      {entry.impressions.toLocaleString()}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -117,12 +132,14 @@ export default async function AnalyticsPage() {
               </thead>
               <tbody>
                 {email_history.map((send, i) => (
-                  <tr key={i} className={i < email_history.length - 1 ? 'border-b' : ''}>
+                  <tr key={`${send.sent_at}-${i}`} className={i < email_history.length - 1 ? 'border-b' : ''}>
                     <td className="px-4 py-2.5 font-medium truncate max-w-xs">{send.entry_title}</td>
                     <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">
                       {send.sent_at ? format(new Date(send.sent_at), 'MMM d, yyyy') : '-'}
                     </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{send.recipient_count.toLocaleString()}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">
+                      {send.recipient_count.toLocaleString()}
+                    </td>
                     <td className="px-4 py-2.5 text-right">
                       <Badge
                         variant={

@@ -10,12 +10,23 @@ import {
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+// SVG fill attributes do not resolve CSS custom properties — they are not CSS properties,
+// they are SVG presentation attributes. We must resolve the actual color value at render
+// time via getComputedStyle and pass a concrete color string to Recharts.
+// This component is always 'use client', so document is available at render time.
+function getPrimaryColor(): string {
+  if (typeof document === 'undefined') return '#0f172a' // SSR fallback (should not happen)
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()
+  return raw ? `hsl(${raw})` : '#0f172a'
+}
+
 interface Props {
   subscriberGrowth: { month: string; new_subscribers: number }[]
   publishingCadence: { month: string; count: number }[]
 }
 
 export function AnalyticsCharts({ subscriberGrowth, publishingCadence }: Props) {
+  const primaryColor = getPrimaryColor()
   const subsEmpty = subscriberGrowth.every(d => d.new_subscribers === 0)
   const cadenceEmpty = publishingCadence.every(d => d.count === 0)
 
@@ -38,7 +49,7 @@ export function AnalyticsCharts({ subscriberGrowth, publishingCadence }: Props) 
                 <Bar
                   dataKey="new_subscribers"
                   name="New subscribers"
-                  fill="hsl(var(--primary))"
+                  fill={primaryColor}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -64,7 +75,7 @@ export function AnalyticsCharts({ subscriberGrowth, publishingCadence }: Props) 
                 <Bar
                   dataKey="count"
                   name="Entries published"
-                  fill="hsl(var(--primary))"
+                  fill={primaryColor}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
